@@ -26,6 +26,7 @@ import (
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+	"go.uber.org/zap"
 
 	_ "github.com/username/order-processor/docs/swagger" // Import generated docs
 	"github.com/username/order-processor/internal/config"
@@ -60,7 +61,7 @@ func main() {
 	// Initialize database connection
 	db, err := database.New(&cfg.Database, logger.Logger)
 	if err != nil {
-		logger.SugaredLogger.Fatalw("Failed to initialize database connection", "error", err)
+		logger.Logger.Fatal("Failed to initialize database connection", zap.Error(err))
 	}
 	defer db.Close()
 

@@ -34,9 +34,13 @@ func (oi *OrderItem) BeforeCreate(tx *gorm.DB) error {
 	return nil
 }
 
-// BeforeSave hook to calculate total price
+// BeforeSave hook to calculate total price conditionally
 func (oi *OrderItem) BeforeSave(tx *gorm.DB) error {
-	oi.TotalPrice = float64(oi.Quantity) * oi.UnitPrice
+	// Only calculate TotalPrice if it is not set (zero or negative)
+	// This allows for manual price adjustments (discounts, promotions, etc.)
+	if oi.TotalPrice <= 0 {
+		oi.TotalPrice = float64(oi.Quantity) * oi.UnitPrice
+	}
 	return nil
 }
 

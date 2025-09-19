@@ -15,8 +15,7 @@ CREATE TABLE idempotency_keys (
     CONSTRAINT idempotency_keys_status_code_check CHECK (response_status_code >= 100 AND response_status_code < 600)
 );
 
--- Create indexes for performance
-CREATE UNIQUE INDEX idx_idempotency_keys_key ON idempotency_keys(idempotency_key);
+-- Create indexes for performance (idempotency_key already has unique index from UNIQUE constraint)
 CREATE INDEX idx_idempotency_keys_resource ON idempotency_keys(resource_type, resource_id);
 CREATE INDEX idx_idempotency_keys_expires_at ON idempotency_keys(expires_at);
 CREATE INDEX idx_idempotency_keys_created_at ON idempotency_keys(created_at);

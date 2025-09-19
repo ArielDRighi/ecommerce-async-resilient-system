@@ -283,7 +283,7 @@ func (s *Seeder) SeedOutboxEvents() error {
 			EventVersion:  1,
 			CorrelationID: &correlationID,
 			Processed:     true,
-			ProcessedAt:   &time.Time{},
+			ProcessedAt:   nil, // Will be set by logic below
 		},
 		{
 			ID:            uuid.MustParse("550e8400-e29b-41d4-a716-446655440041"),
@@ -302,7 +302,7 @@ func (s *Seeder) SeedOutboxEvents() error {
 			CorrelationID: &correlationID,
 			Processed:     false,
 			RetryCount:    1,
-			NextRetryAt:   &time.Time{},
+			NextRetryAt:   nil, // Will be set by logic below
 		},
 		{
 			ID:            uuid.MustParse("550e8400-e29b-41d4-a716-446655440042"),
@@ -320,7 +320,7 @@ func (s *Seeder) SeedOutboxEvents() error {
 			EventVersion:  2,
 			CorrelationID: &correlationID,
 			Processed:     true,
-			ProcessedAt:   &time.Time{},
+			ProcessedAt:   nil, // Will be set by logic below
 		},
 	}
 
