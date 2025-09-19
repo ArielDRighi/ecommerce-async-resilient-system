@@ -29,7 +29,9 @@ import (
 
 	_ "github.com/username/order-processor/docs/swagger" // Import generated docs
 	"github.com/username/order-processor/internal/config"
+	"github.com/username/order-processor/internal/database"
 	httphandler "github.com/username/order-processor/internal/handler/http"
+	"github.com/username/order-processor/internal/health"
 	"github.com/username/order-processor/internal/logger"
 )
 
@@ -54,6 +56,20 @@ func main() {
 		os.Exit(1)
 	}
 	defer logger.Sync()
+
+	// Initialize database connection
+	db, err := database.New(&cfg.Database, logger.Logger)
+	if err != nil {
+		logger.SugaredLogger.Fatalw("Failed to initialize database connection", "error", err)
+	}
+	defer db.Close()
+
+	// Initialize health service
+	healthService := health.NewService(logger.Logger)
+	
+	// Register health checkers
+	dbHealthChecker := health.NewDatabaseHealthChecker(db, logger.Logger)
+	healthService.RegisterChecker(dbHealthChecker)
 
 	// Log application startup
 	logger.SugaredLogger.Infow("Starting Order Processor API",
@@ -92,7 +108,7 @@ func main() {
 	})
 
 	// Health check endpoint (outside API versioning)
-	router.GET("/health", httphandler.HealthCheckHandler)
+	router.GET("/health", httphandler.HealthCheckHandler(healthService))
 
 	// API v1 routes
 	v1 := router.Group("/api/v1")

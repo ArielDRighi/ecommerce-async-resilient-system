@@ -221,12 +221,64 @@ env-check: ## Check environment setup
 	@which golangci-lint > /dev/null && echo "✓ golangci-lint installed" || echo "✗ golangci-lint not installed (run: make deps-dev)"
 	@which gosec > /dev/null && echo "✓ gosec installed" || echo "✗ gosec not installed (run: make deps-dev)"
 
-# Database migration targets (placeholder for future implementation)
-migrate-up: ## Run database migrations up
-	@echo "Database migrations not implemented yet"
+# Database migration targets
+DB_URL := "postgres://postgres:postgres@localhost:5432/order_processor?sslmode=disable"
+MIGRATIONS_PATH := ./migrations
 
-migrate-down: ## Run database migrations down
-	@echo "Database migrations not implemented yet"
+migrate-install: ## Install golang-migrate CLI tool
+	@echo "Installing golang-migrate CLI..."
+	@go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+	@echo "golang-migrate CLI installed successfully"
+
+migrate-create: ## Create new migration file (usage: make migrate-create NAME=migration_name)
+	@if [ "$(NAME)" = "" ]; then \
+		echo "Error: NAME parameter is required. Usage: make migrate-create NAME=migration_name"; \
+		exit 1; \
+	fi
+	@echo "Creating migration: $(NAME)"
+	@migrate create -ext sql -dir $(MIGRATIONS_PATH) -seq $(NAME)
+
+migrate-up: ## Run all database migrations up
+	@echo "Running database migrations up..."
+	@migrate -path $(MIGRATIONS_PATH) -database $(DB_URL) up
+	@echo "Database migrations completed"
+
+migrate-down: ## Run all database migrations down
+	@echo "Running database migrations down..."
+	@migrate -path $(MIGRATIONS_PATH) -database $(DB_URL) down
+	@echo "Database migrations reverted"
+
+migrate-down-1: ## Run one database migration down
+	@echo "Running one database migration down..."
+	@migrate -path $(MIGRATIONS_PATH) -database $(DB_URL) down 1
+	@echo "One migration reverted"
+
+migrate-force: ## Force migration version (usage: make migrate-force VERSION=version_number)
+	@if [ "$(VERSION)" = "" ]; then \
+		echo "Error: VERSION parameter is required. Usage: make migrate-force VERSION=version_number"; \
+		exit 1; \
+	fi
+	@echo "Forcing migration to version $(VERSION)..."
+	@migrate -path $(MIGRATIONS_PATH) -database $(DB_URL) force $(VERSION)
+
+migrate-version: ## Show current migration version
+	@migrate -path $(MIGRATIONS_PATH) -database $(DB_URL) version
+
+migrate-status: ## Show migration status
+	@echo "Current migration status:"
+	@migrate -path $(MIGRATIONS_PATH) -database $(DB_URL) version 2>/dev/null || echo "No migrations applied"
+
+# Database utility targets
+db-reset: migrate-down migrate-up ## Reset database (down then up)
+	@echo "Database reset completed"
+
+db-seed: ## Run database seeding
+	@echo "Running database seeding..."
+	@go run ./cmd/tools/seeder/main.go
+	@echo "Database seeding completed"
+
+db-setup: migrate-up db-seed ## Setup database (migrate + seed)
+	@echo "Database setup completed"
 
 migrate-status: ## Show migration status
 	@echo "Database migrations not implemented yet"
