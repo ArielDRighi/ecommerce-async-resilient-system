@@ -201,3 +201,9 @@ func (oi *OrderItem) Clone() *OrderItem {
 		updatedAt:   oi.updatedAt,
 	}
 }
+
+// SetOrderID sets the order ID (used during order creation)
+func (oi *OrderItem) SetOrderID(orderID uuid.UUID) {
+	oi.orderID = orderID
+	oi.updatedAt = time.Now()
+}

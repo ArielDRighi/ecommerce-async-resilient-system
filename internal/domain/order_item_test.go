@@ -335,3 +335,24 @@ func TestOrderItem_Clone(t *testing.T) {
 	// Should be different instances
 	assert.NotSame(t, original, cloned)
 }
+
+func TestOrderItem_SetOrderID(t *testing.T) {
+	orderID := uuid.New()
+	productID := uuid.New()
+	unitPrice, err := NewMoney(15.99, USD)
+	require.NoError(t, err)
+
+	item, err := NewOrderItem(orderID, productID, "Test Product", 3, unitPrice)
+	require.NoError(t, err)
+
+	originalUpdateTime := item.UpdatedAt()
+	time.Sleep(1 * time.Millisecond) // Ensure time difference
+
+	newOrderID := uuid.New()
+	item.SetOrderID(newOrderID)
+
+	// Verify the order ID was updated
+	assert.Equal(t, newOrderID, item.OrderID())
+	// Verify the updated time was changed
+	assert.True(t, item.UpdatedAt().After(originalUpdateTime))
+}

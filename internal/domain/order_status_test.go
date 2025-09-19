@@ -94,7 +94,7 @@ func TestOrderStatus_CanTransitionTo(t *testing.T) {
 		// From PaymentProcessing
 		{"payment_processing to payment_completed", OrderStatusPaymentProcessing, OrderStatusPaymentCompleted, true},
 		{"payment_processing to failed", OrderStatusPaymentProcessing, OrderStatusFailed, true},
-		{"payment_processing to cancelled", OrderStatusPaymentProcessing, OrderStatusCancelled, true}, // Actually allowed
+		{"payment_processing to cancelled", OrderStatusPaymentProcessing, OrderStatusCancelled, true}, // Cancellation is allowed during payment processing to support user-initiated cancellations or payment timeouts, as per business requirements.
 		{"payment_processing to pending", OrderStatusPaymentProcessing, OrderStatusPending, false},
 
 		// From PaymentCompleted

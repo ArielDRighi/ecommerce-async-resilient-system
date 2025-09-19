@@ -53,7 +53,7 @@ func NewOrder(customerID uuid.UUID, customerEmail *Email, items []*OrderItem) (*
 
 	// Update order ID in all items
 	for _, item := range items {
-		item.orderID = orderID
+		item.SetOrderID(orderID)
 	}
 
 	order := &Order{
@@ -337,9 +337,9 @@ func calculateTotalAmount(items []*OrderItem) (*Money, error) {
 	}
 
 	// Get currency from first item
-	total := &Money{
-		amount:   0,
-		currency: items[0].TotalPrice().Currency(),
+	total, err := NewMoneyFromCents(0, items[0].TotalPrice().Currency())
+	if err != nil {
+		return nil, err
 	}
 
 	for _, item := range items {
