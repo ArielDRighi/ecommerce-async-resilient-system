@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"gorm.io/gorm"
-	
+
 	"github.com/username/order-processor/internal/repository"
 )
 

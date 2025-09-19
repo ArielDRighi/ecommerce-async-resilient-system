@@ -18,8 +18,8 @@ import (
 
 	"github.com/username/order-processor/internal/domain"
 	"github.com/username/order-processor/internal/repository"
-	repoPostgres "github.com/username/order-processor/internal/repository/postgres"
 	"github.com/username/order-processor/internal/repository/models"
+	repoPostgres "github.com/username/order-processor/internal/repository/postgres"
 )
 
 // RepositoryTestSuite contains integration tests for repository implementations

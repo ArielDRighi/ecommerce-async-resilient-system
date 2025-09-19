@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"gorm.io/gorm"
 	"github.com/username/order-processor/internal/domain"
+	"gorm.io/gorm"
 )
 
 // Error handling and conversion utilities for GORM to domain errors
