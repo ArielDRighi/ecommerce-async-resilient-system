@@ -216,6 +216,8 @@ func (p *PublisherWithRetry) PublishWithConfirmation(ctx context.Context, routin
 // publishWithRetry implements the retry logic
 func (p *PublisherWithRetry) publishWithRetry(ctx context.Context, routingKey string, message *Message, confirm bool) error {
 	var lastErr error
+	// Use local variable for retry delay to avoid side effects
+	currentDelay := p.retryDelay
 	
 	for attempt := 1; attempt <= p.maxRetries+1; attempt++ {
 		var err error
@@ -243,18 +245,19 @@ func (p *PublisherWithRetry) publishWithRetry(ctx context.Context, routingKey st
 				zap.String("message_id", message.ID),
 				zap.Int("attempt", attempt),
 				zap.Int("max_retries", p.maxRetries),
+				zap.Duration("retry_delay", currentDelay),
 				zap.Error(err),
 			)
 
 			// Wait before retrying
 			select {
-			case <-time.After(p.retryDelay):
+			case <-time.After(currentDelay):
 			case <-ctx.Done():
 				return ctx.Err()
 			}
 			
-			// Exponential backoff
-			p.retryDelay *= 2
+			// Exponential backoff with local variable
+			currentDelay *= 2
 		}
 	}
 

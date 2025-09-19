@@ -103,7 +103,7 @@ func (tm *TopologyManager) setupMainQueue(ch *amqp.Channel) error {
 		"x-dead-letter-exchange":    dlxName,
 		"x-dead-letter-routing-key": tm.config.DLQ,
 		"x-message-ttl":             300000, // 5 minutes TTL
-		"x-max-retries":             tm.config.MaxRetries,
+		// Note: retry logic is handled at application level, not queue level
 	}
 
 	tm.logger.Info("Creating main queue",

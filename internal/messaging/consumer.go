@@ -94,6 +94,7 @@ type consumer struct {
 	messagesRequeued  int64
 	processingErrors  int64
 	lastMessageTime   time.Time
+	lastMessageMutex  sync.RWMutex
 }
 
 // ConsumerConfig holds consumer configuration
@@ -193,6 +194,10 @@ func (c *consumer) IsRunning() bool {
 
 // GetStats returns consumer statistics
 func (c *consumer) GetStats() ConsumerStats {
+	c.lastMessageMutex.RLock()
+	lastMsgTime := c.lastMessageTime
+	c.lastMessageMutex.RUnlock()
+	
 	return ConsumerStats{
 		Running:           c.IsRunning(),
 		MessagesReceived:  atomic.LoadInt64(&c.messagesReceived),
@@ -202,7 +207,7 @@ func (c *consumer) GetStats() ConsumerStats {
 		MessagesRejected:  atomic.LoadInt64(&c.messagesRejected),
 		MessagesRequeued:  atomic.LoadInt64(&c.messagesRequeued),
 		ProcessingErrors:  atomic.LoadInt64(&c.processingErrors),
-		LastMessageTime:   c.lastMessageTime,
+		LastMessageTime:   lastMsgTime,
 	}
 }
 
@@ -279,7 +284,11 @@ func (c *consumer) consume(ctx context.Context) error {
 // handleDelivery processes a single message delivery
 func (c *consumer) handleDelivery(ctx context.Context, delivery *amqp.Delivery) {
 	atomic.AddInt64(&c.messagesReceived, 1)
+	
+	// Update last message time with mutex protection
+	c.lastMessageMutex.Lock()
 	c.lastMessageTime = time.Now()
+	c.lastMessageMutex.Unlock()
 
 	start := time.Now()
 	messageID := delivery.MessageId
