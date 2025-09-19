@@ -261,7 +261,7 @@ func (tm *TransactionManager) CleanupIdleTransactions(ctx context.Context, maxId
 		FROM pg_stat_activity
 		WHERE state = 'idle in transaction'
 		AND backend_type = 'client backend'
-		AND NOW() - state_change > INTERVAL '%d seconds'
+		AND NOW() - state_change > INTERVAL ? || ' seconds'
 	`, maxIdleTime)
 	
 	if result.Error != nil {

@@ -79,8 +79,10 @@ func (suite *RepositoryTestSuite) SetupSuite() {
 // TearDownSuite cleans up after all tests
 func (suite *RepositoryTestSuite) TearDownSuite() {
 	if suite.db != nil {
-		// Clean up test data
-		suite.db.Exec("TRUNCATE TABLE outbox_events, order_items, orders, idempotency_keys RESTART IDENTITY CASCADE")
+		// Clean up test data using helper function
+		if err := QuickCleanTestDatabase(suite.db); err != nil {
+			suite.T().Logf("Warning: Failed to clean test database: %v", err)
+		}
 		
 		// Close database connection
 		sqlDB, _ := suite.db.DB()
@@ -92,8 +94,10 @@ func (suite *RepositoryTestSuite) TearDownSuite() {
 
 // SetupTest prepares for each test
 func (suite *RepositoryTestSuite) SetupTest() {
-	// Clean tables before each test
-	suite.db.Exec("TRUNCATE TABLE outbox_events, order_items, orders, idempotency_keys RESTART IDENTITY CASCADE")
+	// Clean tables before each test using helper function
+	if err := QuickCleanTestDatabase(suite.db); err != nil {
+		suite.T().Fatalf("Failed to clean test database: %v", err)
+	}
 }
 
 // TestOrderRepository_Create tests order creation

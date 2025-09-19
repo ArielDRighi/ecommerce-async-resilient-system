@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"fmt"
 	"os"
 	"testing"
 	"time"
@@ -100,12 +101,59 @@ func CleanTestDatabase(t *testing.T, db *gorm.DB) {
 		"idempotency_keys",
 	}
 	
+	// Define allowed tables for security
+	allowedTables := map[string]bool{
+		"outbox_events":     true,
+		"order_items":      true,
+		"orders":           true,
+		"idempotency_keys": true,
+	}
+	
 	for _, table := range tables {
+		// Validate table name against whitelist to prevent SQL injection
+		if !allowedTables[table] {
+			t.Logf("Warning: Attempted to clean unknown table %s, skipping", table)
+			continue
+		}
+		
 		result := db.Exec("TRUNCATE TABLE " + table + " RESTART IDENTITY CASCADE")
 		if result.Error != nil {
 			t.Logf("Warning: Failed to clean table %s: %v", table, result.Error)
 		}
 	}
+}
+
+// QuickCleanTestDatabase provides a quick way to clean test data using the same logic as CleanTestDatabase
+func QuickCleanTestDatabase(db *gorm.DB) error {
+	// Use the same table order and logic as CleanTestDatabase
+	tables := []string{
+		"outbox_events",
+		"order_items", 
+		"orders",
+		"idempotency_keys",
+	}
+	
+	// Define allowed tables for security
+	allowedTables := map[string]bool{
+		"outbox_events":     true,
+		"order_items":      true,
+		"orders":           true,
+		"idempotency_keys": true,
+	}
+	
+	for _, table := range tables {
+		// Validate table name against whitelist to prevent SQL injection
+		if !allowedTables[table] {
+			continue // Skip unknown tables silently in quick clean
+		}
+		
+		result := db.Exec("TRUNCATE TABLE " + table + " RESTART IDENTITY CASCADE")
+		if result.Error != nil {
+			return fmt.Errorf("failed to clean table %s: %w", table, result.Error)
+		}
+	}
+	
+	return nil
 }
 
 // TeardownTestDatabase closes the test database connection
