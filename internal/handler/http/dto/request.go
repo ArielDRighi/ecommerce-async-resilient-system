@@ -107,12 +107,7 @@ func (r *CreateOrderRequest) ToDomainOrder() (*domain.Order, error) {
 		return nil, err
 	}
 
-	// Create an empty order first, then add items
-	// We'll use a temporary approach: create items with a temporary orderID, 
-	// then let NewOrder fix the orderIDs
-	tempOrderID := uuid.New()
-	
-	// Convert order items to domain OrderItems with temporary orderID
+	// Create order items without order ID (will be set by NewOrder)
 	var orderItems []*domain.OrderItem
 	for _, item := range r.Items {
 		// Convert unit price (in cents) to domain Money value object
@@ -121,9 +116,8 @@ func (r *CreateOrderRequest) ToDomainOrder() (*domain.Order, error) {
 			return nil, err
 		}
 
-		// Create domain OrderItem with temporary orderID for validation
-		orderItem, err := domain.NewOrderItem(
-			tempOrderID, // temporary orderID
+		// Create OrderItem using the new constructor that doesn't require orderID
+		orderItem, err := domain.NewOrderItemForOrder(
 			item.ProductID,
 			item.ProductName,
 			item.Quantity,
@@ -137,7 +131,7 @@ func (r *CreateOrderRequest) ToDomainOrder() (*domain.Order, error) {
 	}
 
 	// Create domain Order with validation
-	// NewOrder will update the orderID in all items automatically
+	// NewOrder will set the orderID in all items automatically
 	return domain.NewOrder(
 		r.CustomerID,
 		customerEmail,

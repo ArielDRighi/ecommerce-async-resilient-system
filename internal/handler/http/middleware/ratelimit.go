@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -26,19 +27,41 @@ type RateLimiterConfig struct {
 	SkipIPs []string
 }
 
-// RateLimit creates a rate limiting middleware using Redis
-func RateLimit(config RateLimiterConfig) gin.HandlerFunc {
-	// Parse rate limit
-	rate, err := limiter.NewRateFromFormatted(config.Rate)
+// ValidateRateLimiterConfig validates the rate limiter configuration
+func ValidateRateLimiterConfig(config RateLimiterConfig) error {
+	// Validate rate format
+	_, err := limiter.NewRateFromFormatted(config.Rate)
 	if err != nil {
-		panic("Invalid rate limit format: " + config.Rate)
+		return err
 	}
 	
-	// Create Redis store
-	store, err := redis.NewStore(config.RedisClient)
-	if err != nil {
-		panic("Failed to create Redis store for rate limiting: " + err.Error())
+	// Validate Redis client
+	if config.RedisClient == nil {
+		return fmt.Errorf("Redis client is required for rate limiting")
 	}
+	
+	// Test Redis store creation
+	_, err = redis.NewStore(config.RedisClient)
+	if err != nil {
+		return fmt.Errorf("failed to create Redis store for rate limiting: %w", err)
+	}
+	
+	return nil
+}
+
+// RateLimit creates a rate limiting middleware using Redis
+// Returns error if configuration is invalid
+func RateLimit(config RateLimiterConfig) (gin.HandlerFunc, error) {
+	// Validate configuration
+	if err := ValidateRateLimiterConfig(config); err != nil {
+		return nil, fmt.Errorf("invalid rate limiter configuration: %w", err)
+	}
+	
+	// Parse rate limit (already validated above)
+	rate, _ := limiter.NewRateFromFormatted(config.Rate)
+	
+	// Create Redis store (already validated above)
+	store, _ := redis.NewStore(config.RedisClient)
 	
 	// Create limiter instance
 	instance := limiter.New(store, rate, limiter.WithTrustForwardHeader(true))
@@ -122,22 +145,22 @@ func RateLimit(config RateLimiterConfig) gin.HandlerFunc {
 		)
 		
 		c.Next()
-	}
+	}, nil
 }
 
 // RateLimitByUserID creates a rate limiting middleware based on user ID
-func RateLimitByUserID(config RateLimiterConfig, getUserID func(*gin.Context) string) gin.HandlerFunc {
-	// Parse rate limit
-	rate, err := limiter.NewRateFromFormatted(config.Rate)
-	if err != nil {
-		panic("Invalid rate limit format: " + config.Rate)
+// Returns error if configuration is invalid
+func RateLimitByUserID(config RateLimiterConfig, getUserID func(*gin.Context) string) (gin.HandlerFunc, error) {
+	// Validate configuration
+	if err := ValidateRateLimiterConfig(config); err != nil {
+		return nil, fmt.Errorf("invalid rate limiter configuration: %w", err)
 	}
 	
-	// Create Redis store
-	store, err := redis.NewStore(config.RedisClient)
-	if err != nil {
-		panic("Failed to create Redis store for rate limiting: " + err.Error())
-	}
+	// Parse rate limit (already validated above)
+	rate, _ := limiter.NewRateFromFormatted(config.Rate)
+	
+	// Create Redis store (already validated above)
+	store, _ := redis.NewStore(config.RedisClient)
 	
 	// Create limiter instance
 	instance := limiter.New(store, rate)
@@ -210,7 +233,7 @@ func RateLimitByUserID(config RateLimiterConfig, getUserID func(*gin.Context) st
 		}
 		
 		c.Next()
-	}
+	}, nil
 }
 
 // IdempotencyMiddleware creates middleware for handling idempotency keys

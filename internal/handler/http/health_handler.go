@@ -305,32 +305,13 @@ func (h *HealthHandler) checkRabbitMQ(ctx context.Context) dto.HealthComponentSt
 	}
 	defer ch.Close()
 	
-	// Try to declare a temporary queue to test functionality
-	_, err = ch.QueueDeclare(
-		"health-check-temp", // queue name
-		false,               // durable
-		true,                // delete when unused
-		true,                // exclusive
-		false,               // no-wait
-		nil,                 // arguments
-	)
-	
-	if err != nil {
-		return dto.HealthComponentStatus{
-			Status:       "degraded",
-			ResponseTime: time.Since(start).Milliseconds(),
-			Error:        "RabbitMQ queue operations failed: " + err.Error(),
-			Details: map[string]interface{}{
-				"connection_open": !h.rabbitConn.IsClosed(),
-			},
-		}
-	}
-	
+	// Successfully opened a channel, so RabbitMQ is considered healthy
 	return dto.HealthComponentStatus{
 		Status:       "healthy",
 		ResponseTime: time.Since(start).Milliseconds(),
 		Details: map[string]interface{}{
 			"connection_open": !h.rabbitConn.IsClosed(),
+			"channel_open":    true,
 		},
 	}
 }
