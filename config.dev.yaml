@@ -1,0 +1,23 @@
+# Development Configuration
+# Override specific settings for development environment
+
+logger:
+  level: "debug"
+  format: "console"
+  environment: "development"
+
+app:
+  environment: "development"
+  debug: true
+
+# External services for development (using mocks)
+external:
+  stock:
+    enabled: true
+    url: "http://localhost:8081"
+  payment:
+    enabled: true
+    url: "http://localhost:8082"
+  email:
+    enabled: true
+    url: "http://localhost:8083"

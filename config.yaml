@@ -1,0 +1,101 @@
+# Order Processor Configuration File
+# Environment variables take precedence over file values
+# Environment variable format: ORDER_<SECTION>_<KEY> (e.g., ORDER_SERVER_PORT=8080)
+
+server:
+  host: "0.0.0.0"
+  port: 8080
+  read_timeout: 30 # seconds
+  write_timeout: 30 # seconds
+  idle_timeout: 120 # seconds
+
+database:
+  host: "localhost"
+  port: 5432
+  user: "postgres"
+  password: "postgres"
+  dbname: "order_processor"
+  sslmode: "disable"
+  max_open_conns: 25
+  max_idle_conns: 5
+  max_lifetime: 30 # minutes
+
+redis:
+  host: "localhost"
+  port: 6379
+  password: ""
+  db: 0
+  pool_size: 10
+  min_idle_conns: 2
+  idle_timeout: 5 # minutes
+
+rabbitmq:
+  host: "localhost"
+  port: 5672
+  user: "guest"
+  password: "guest"
+  vhost: "/"
+  exchange: "orders.exchange"
+  queue: "orders.created"
+  dlq: "orders.dlq"
+  routing_key: "order.created"
+  max_retries: 3
+  retry_delay: 5 # seconds
+
+logger:
+  level: "info" # debug, info, warn, error
+  format: "json" # json, console
+  filename: "logs/application.log"
+  max_size: 100 # megabytes
+  max_backups: 5 # number of backup files
+  max_age: 30 # days
+  compress: true # compress rotated files
+  environment: "production" # development, production
+
+app:
+  name: "order-processor"
+  version: "1.0.0"
+  environment: "production" # development, production
+  debug: false
+
+  idempotency:
+    ttl: 3600 # seconds (1 hour)
+    key_prefix: "idempotency:"
+    enabled: true
+
+  external:
+    stock:
+      enabled: true
+      url: "http://localhost:8081"
+      timeout: 30 # seconds
+      max_retries: 3
+      retry_delay: 1 # seconds
+      circuit_breaker:
+        enabled: true
+        failure_threshold: 5
+        recovery_timeout: 30 # seconds
+        half_open_requests: 3
+
+    payment:
+      enabled: true
+      url: "http://localhost:8082"
+      timeout: 30 # seconds
+      max_retries: 3
+      retry_delay: 1 # seconds
+      circuit_breaker:
+        enabled: true
+        failure_threshold: 5
+        recovery_timeout: 30 # seconds
+        half_open_requests: 3
+
+    email:
+      enabled: true
+      url: "http://localhost:8083"
+      timeout: 30 # seconds
+      max_retries: 2
+      retry_delay: 1 # seconds
+      circuit_breaker:
+        enabled: true
+        failure_threshold: 3
+        recovery_timeout: 30 # seconds
+        half_open_requests: 2
