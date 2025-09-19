@@ -1,0 +1,1020 @@
+basePath: /
+definitions:
+  ErrorResponse:
+    description: Error response structure
+    properties:
+      correlation_id:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      details:
+        additionalProperties:
+          type: string
+        type: object
+      error:
+        example: Bad Request
+        type: string
+      message:
+        example: Invalid request parameters
+        type: string
+      timestamp:
+        example: "2023-09-19T10:30:00Z"
+        type: string
+    type: object
+  HealthCheckResponse:
+    description: Health check response structure
+    properties:
+      correlation_id:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      services:
+        additionalProperties:
+          $ref: '#/definitions/ServiceHealthInfo'
+        type: object
+      status:
+        example: healthy
+        type: string
+      timestamp:
+        example: "2023-09-19T10:30:00Z"
+        type: string
+      uptime:
+        example: 2h30m45s
+        type: string
+      version:
+        example: 1.0.0
+        type: string
+    type: object
+  OrderItem:
+    description: Order item structure
+    properties:
+      product_id:
+        example: 550e8400-e29b-41d4-a716-446655440002
+        type: string
+      product_name:
+        example: Wireless Headphones
+        maxLength: 255
+        minLength: 1
+        type: string
+      quantity:
+        example: 2
+        minimum: 1
+        type: integer
+      unit_price:
+        example: 99.99
+        type: number
+    required:
+    - product_id
+    - product_name
+    - quantity
+    - unit_price
+    type: object
+  OrderRequest:
+    description: Order creation request structure
+    properties:
+      customer_email:
+        example: customer@example.com
+        type: string
+        x-order: "2"
+      customer_id:
+        example: 550e8400-e29b-41d4-a716-446655440001
+        type: string
+        x-order: "1"
+      items:
+        items:
+          $ref: '#/definitions/OrderItem'
+        minItems: 1
+        type: array
+        x-order: "3"
+    required:
+    - customer_email
+    - customer_id
+    - items
+    type: object
+  OrderResponse:
+    description: Order response structure
+    properties:
+      created_at:
+        example: "2023-09-19T10:30:00Z"
+        type: string
+      customer_email:
+        example: customer@example.com
+        type: string
+      customer_id:
+        example: 550e8400-e29b-41d4-a716-446655440001
+        type: string
+      id:
+        example: 550e8400-e29b-41d4-a716-446655440003
+        type: string
+      items:
+        items:
+          $ref: '#/definitions/OrderItem'
+        type: array
+      processed_at:
+        example: "2023-09-19T10:35:00Z"
+        type: string
+      status:
+        enum:
+        - pending
+        - stock_verified
+        - payment_processing
+        - payment_completed
+        - confirmed
+        - failed
+        - cancelled
+        example: pending
+        type: string
+      total_amount:
+        example: 199.98
+        type: number
+      updated_at:
+        example: "2023-09-19T10:30:00Z"
+        type: string
+    type: object
+  PaginationResponse:
+    description: Pagination response structure
+    properties:
+      correlation_id:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      data: {}
+      page:
+        example: 1
+        type: integer
+      page_size:
+        example: 10
+        type: integer
+      timestamp:
+        example: "2023-09-19T10:30:00Z"
+        type: string
+      total:
+        example: 100
+        type: integer
+      total_pages:
+        example: 10
+        type: integer
+    type: object
+  ServiceHealthInfo:
+    properties:
+      error:
+        type: string
+      last_check:
+        example: "2023-09-19T10:30:00Z"
+        type: string
+      latency:
+        example: 2ms
+        type: string
+      status:
+        example: healthy
+        type: string
+    type: object
+  SuccessResponse:
+    description: Success response structure
+    properties:
+      correlation_id:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      data: {}
+      message:
+        example: Operation completed successfully
+        type: string
+      timestamp:
+        example: "2023-09-19T10:30:00Z"
+        type: string
+    type: object
+  dto.CreateOrderItemRequest:
+    description: Individual item details for order creation
+    properties:
+      product_id:
+        description: |-
+          Product ID (UUID format)
+          @Description Unique identifier for the product
+          @Example "456e7890-e89b-12d3-a456-426614174001"
+        example: 456e7890-e89b-12d3-a456-426614174001
+        type: string
+      product_name:
+        description: |-
+          Product name
+          @Description Name/description of the product
+          @Example "Wireless Bluetooth Headphones"
+        example: Wireless Bluetooth Headphones
+        maxLength: 255
+        minLength: 1
+        type: string
+      quantity:
+        description: |-
+          Quantity of the product
+          @Description Number of units of this product in the order
+          @Example 2
+        example: 2
+        minimum: 1
+        type: integer
+      unit_price:
+        description: |-
+          Unit price of the product in cents
+          @Description Price per unit in cents (e.g., $19.99 = 1999)
+          @Example 1999
+        example: 1999
+        minimum: 1
+        type: integer
+    required:
+    - product_id
+    - product_name
+    - quantity
+    - unit_price
+    type: object
+  dto.CreateOrderRequest:
+    description: Request payload for creating a new order
+    properties:
+      customer_email:
+        description: |-
+          Customer email address
+          @Description Valid email address of the customer
+          @Example "customer@example.com"
+        example: customer@example.com
+        type: string
+      customer_id:
+        description: |-
+          Customer ID (UUID format)
+          @Description Unique identifier for the customer placing the order
+          @Example "123e4567-e89b-12d3-a456-426614174000"
+        example: 123e4567-e89b-12d3-a456-426614174000
+        type: string
+      idempotency_key:
+        description: |-
+          Idempotency key for preventing duplicate orders
+          @Description Optional idempotency key to prevent duplicate order creation
+          @Example "order-2024-001"
+        example: order-2024-001
+        maxLength: 255
+        type: string
+      items:
+        description: |-
+          List of items in the order
+          @Description Array of items to be included in the order
+        items:
+          $ref: '#/definitions/dto.CreateOrderItemRequest'
+        minItems: 1
+        type: array
+    required:
+    - customer_email
+    - customer_id
+    - items
+    type: object
+  dto.CreateOrderResponse:
+    description: Response returned after successfully creating an order
+    properties:
+      correlation_id:
+        description: |-
+          Correlation ID for tracking
+          @Description Correlation ID for tracking this order through the system
+          @Example "req_789e0123-e89b-12d3-a456-426614174002"
+        example: req_789e0123-e89b-12d3-a456-426614174002
+        type: string
+      id:
+        description: |-
+          Order ID (UUID format)
+          @Description Unique identifier for the newly created order
+          @Example "789e0123-e89b-12d3-a456-426614174002"
+        example: 789e0123-e89b-12d3-a456-426614174002
+        type: string
+      message:
+        description: |-
+          Message describing the result
+          @Description Human-readable message about the order creation
+          @Example "Order created successfully and queued for processing"
+        example: Order created successfully and queued for processing
+        type: string
+      status:
+        description: |-
+          Order status
+          @Description Initial status of the created order
+          @Example "pending"
+        example: pending
+        type: string
+    type: object
+  dto.ErrorResponse:
+    description: Standardized error response structure
+    properties:
+      code:
+        description: |-
+          Error code
+          @Description Machine-readable error code for programmatic handling
+          @Example "VALIDATION_ERROR"
+        example: VALIDATION_ERROR
+        type: string
+      correlation_id:
+        description: |-
+          Correlation ID for tracking
+          @Description Correlation ID for tracking this request through logs
+          @Example "req_789e0123-e89b-12d3-a456-426614174002"
+        example: req_789e0123-e89b-12d3-a456-426614174002
+        type: string
+      details:
+        description: |-
+          Detailed error information
+          @Description Additional details about the error
+        type: object
+      message:
+        description: |-
+          Error message
+          @Description Human-readable error message
+          @Example "Validation failed for one or more fields"
+        example: Validation failed for one or more fields
+        type: string
+      path:
+        description: |-
+          Request path where error occurred
+          @Description The API endpoint path where this error occurred
+          @Example "/api/v1/orders"
+        example: /api/v1/orders
+        type: string
+      timestamp:
+        description: |-
+          Timestamp when error occurred
+          @Description When this error occurred (RFC3339 format)
+          @Example "2024-01-15T10:30:00Z"
+        example: "2024-01-15T10:30:00Z"
+        type: string
+    type: object
+  dto.HealthComponentStatus:
+    description: Health status information for a system component
+    properties:
+      details:
+        additionalProperties: true
+        description: |-
+          Additional component details
+          @Description Additional information about the component
+        type: object
+      error:
+        description: |-
+          Error message if unhealthy
+          @Description Error details if the component is not healthy
+          @Example ""
+        example: ""
+        type: string
+      response_time_ms:
+        description: |-
+          Response time in milliseconds
+          @Description How long it took to check this component
+          @Example 5
+        example: 5
+        type: integer
+      status:
+        description: |-
+          Component status
+          @Description Status of this component (healthy, degraded, unhealthy)
+          @Example "healthy"
+        example: healthy
+        type: string
+    type: object
+  dto.HealthComponents:
+    description: Health status information for each system component
+    properties:
+      cache:
+        allOf:
+        - $ref: '#/definitions/dto.HealthComponentStatus'
+        description: |-
+          Redis cache health status
+          @Description Redis cache connection status
+      database:
+        allOf:
+        - $ref: '#/definitions/dto.HealthComponentStatus'
+        description: |-
+          Database health status
+          @Description PostgreSQL database connection status
+      message_queue:
+        allOf:
+        - $ref: '#/definitions/dto.HealthComponentStatus'
+        description: |-
+          RabbitMQ message queue health status
+          @Description RabbitMQ message broker connection status
+    type: object
+  dto.HealthResponse:
+    description: System health check information
+    properties:
+      components:
+        allOf:
+        - $ref: '#/definitions/dto.HealthComponents'
+        description: |-
+          Individual component health status
+          @Description Health status of individual system components
+      duration_ms:
+        description: |-
+          Request duration in milliseconds
+          @Description How long this health check took to complete
+          @Example 25
+        example: 25
+        type: integer
+      status:
+        description: |-
+          Overall system status
+          @Description Overall health status of the system
+          @Example "healthy"
+        example: healthy
+        type: string
+      timestamp:
+        description: |-
+          Timestamp of the health check
+          @Description When this health check was performed
+          @Example "2024-01-15T10:30:00Z"
+        example: "2024-01-15T10:30:00Z"
+        type: string
+      version:
+        description: |-
+          Service version
+          @Description Version of the order processing service
+          @Example "1.0.0"
+        example: 1.0.0
+        type: string
+    type: object
+  dto.ListOrdersResponse:
+    description: Paginated response containing multiple orders
+    properties:
+      orders:
+        description: |-
+          List of orders
+          @Description Array of orders matching the query criteria
+        items:
+          $ref: '#/definitions/dto.OrderResponse'
+        type: array
+      pagination:
+        allOf:
+        - $ref: '#/definitions/dto.PaginationResponse'
+        description: |-
+          Pagination information
+          @Description Pagination metadata for the response
+    type: object
+  dto.OrderItemResponse:
+    description: Individual item details within an order
+    properties:
+      id:
+        description: |-
+          Item ID (UUID format)
+          @Description Unique identifier for the order item
+          @Example "abc12345-e89b-12d3-a456-426614174003"
+        example: abc12345-e89b-12d3-a456-426614174003
+        type: string
+      product_id:
+        description: |-
+          Product ID (UUID format)
+          @Description Unique identifier for the product
+          @Example "456e7890-e89b-12d3-a456-426614174001"
+        example: 456e7890-e89b-12d3-a456-426614174001
+        type: string
+      product_name:
+        description: |-
+          Product name
+          @Description Name/description of the product
+          @Example "Wireless Bluetooth Headphones"
+        example: Wireless Bluetooth Headphones
+        type: string
+      quantity:
+        description: |-
+          Quantity ordered
+          @Description Number of units of this product in the order
+          @Example 2
+        example: 2
+        type: integer
+      total_price:
+        description: |-
+          Total price for this item in cents
+          @Description Total price for this item (quantity * unit_price) in cents
+          @Example 3998
+        example: 3998
+        type: integer
+      unit_price:
+        description: |-
+          Unit price in cents
+          @Description Price per unit in cents (e.g., $19.99 = 1999)
+          @Example 1999
+        example: 1999
+        type: integer
+    type: object
+  dto.OrderResponse:
+    description: Complete order information returned by the API
+    properties:
+      created_at:
+        description: |-
+          Order creation timestamp
+          @Description When the order was created (RFC3339 format)
+          @Example "2024-01-15T10:30:00Z"
+        example: "2024-01-15T10:30:00Z"
+        type: string
+      customer_email:
+        description: |-
+          Customer email address
+          @Description Email address of the customer who placed the order
+          @Example "customer@example.com"
+        example: customer@example.com
+        type: string
+      customer_id:
+        description: |-
+          Customer ID (UUID format)
+          @Description Unique identifier for the customer who placed the order
+          @Example "123e4567-e89b-12d3-a456-426614174000"
+        example: 123e4567-e89b-12d3-a456-426614174000
+        type: string
+      id:
+        description: |-
+          Order ID (UUID format)
+          @Description Unique identifier for the order
+          @Example "789e0123-e89b-12d3-a456-426614174002"
+        example: 789e0123-e89b-12d3-a456-426614174002
+        type: string
+      items:
+        description: |-
+          Order items
+          @Description List of items included in this order
+        items:
+          $ref: '#/definitions/dto.OrderItemResponse'
+        type: array
+      processed_at:
+        description: |-
+          Order processing completion timestamp
+          @Description When the order processing was completed (if applicable)
+          @Example "2024-01-15T10:45:00Z"
+        example: "2024-01-15T10:45:00Z"
+        type: string
+      status:
+        description: |-
+          Order status
+          @Description Current status of the order processing
+          @Example "pending"
+        example: pending
+        type: string
+      total_amount:
+        description: |-
+          Total amount in cents
+          @Description Total order amount in cents (e.g., $49.98 = 4998)
+          @Example 4998
+        example: 4998
+        type: integer
+      updated_at:
+        description: |-
+          Order last update timestamp
+          @Description When the order was last updated (RFC3339 format)
+          @Example "2024-01-15T10:35:00Z"
+        example: "2024-01-15T10:35:00Z"
+        type: string
+    type: object
+  dto.PaginationResponse:
+    description: Pagination information for list responses
+    properties:
+      has_next:
+        description: |-
+          Whether there is a next page
+          @Description Indicates if there are more pages available
+          @Example true
+        example: true
+        type: boolean
+      has_prev:
+        description: |-
+          Whether there is a previous page
+          @Description Indicates if there are previous pages available
+          @Example false
+        example: false
+        type: boolean
+      limit:
+        description: |-
+          Items per page
+          @Description Number of items per page
+          @Example 20
+        example: 20
+        type: integer
+      page:
+        description: |-
+          Current page number
+          @Description Current page number (starts from 1)
+          @Example 1
+        example: 1
+        type: integer
+      total:
+        description: |-
+          Total number of items
+          @Description Total number of items available across all pages
+          @Example 150
+        example: 150
+        type: integer
+      total_pages:
+        description: |-
+          Total number of pages
+          @Description Total number of pages available
+          @Example 8
+        example: 8
+        type: integer
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@order-processor.example.com
+    name: API Support Team
+    url: http://www.order-processor.example.com/support
+  description: |-
+    A comprehensive REST API for asynchronous order processing with resilience patterns
+    This API provides endpoints for creating and managing orders in an asynchronous, resilient manner.
+
+    Features:
+    - Asynchronous order processing with messaging
+    - Comprehensive error handling and logging
+    - Rate limiting and idempotency support
+    - Health checks and monitoring
+    - Request/response validation
+    - Correlation ID tracking
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  termsOfService: http://swagger.io/terms/
+  title: Order Processing API
+  version: "1.0"
+paths:
+  /api/v1/orders:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a paginated list of orders with optional filtering
+      parameters:
+      - default: 1
+        description: Page number (starts from 1)
+        in: query
+        minimum: 1
+        name: page
+        type: integer
+      - default: 20
+        description: Number of items per page
+        in: query
+        maximum: 100
+        minimum: 1
+        name: limit
+        type: integer
+      - description: Filter by customer ID (UUID format)
+        format: uuid
+        in: query
+        name: customer_id
+        type: string
+      - description: Filter by order status
+        enum:
+        - pending
+        - stock_verified
+        - payment_processing
+        - payment_completed
+        - confirmed
+        - failed
+        - cancelled
+        in: query
+        name: status
+        type: string
+      - description: Filter orders created after this date (RFC3339 format)
+        format: date-time
+        in: query
+        name: created_after
+        type: string
+      - description: Filter orders created before this date (RFC3339 format)
+        format: date-time
+        in: query
+        name: created_before
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Paginated list of orders
+          schema:
+            $ref: '#/definitions/dto.ListOrdersResponse'
+        "400":
+          description: Invalid query parameters
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: List orders with pagination
+      tags:
+      - orders
+    post:
+      consumes:
+      - application/json
+      description: Create a new order with the provided items. Returns 202 Accepted
+        as the order will be processed asynchronously.
+      parameters:
+      - description: Idempotency key to prevent duplicate orders
+        in: header
+        name: X-Idempotency-Key
+        type: string
+      - description: Order creation request
+        in: body
+        name: order
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateOrderRequest'
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: Order created successfully
+          schema:
+            $ref: '#/definitions/dto.CreateOrderResponse'
+        "400":
+          description: Validation error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "409":
+          description: Conflict (e.g., duplicate idempotency key)
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "422":
+          description: Business logic error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Create a new order
+      tags:
+      - orders
+  /api/v1/orders/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve detailed information about a specific order
+      parameters:
+      - description: Order ID (UUID format)
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Order details
+          schema:
+            $ref: '#/definitions/dto.OrderResponse'
+        "400":
+          description: Invalid order ID format
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Order not found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Get order by ID
+      tags:
+      - orders
+  /health:
+    get:
+      consumes:
+      - application/json
+      description: Performs a comprehensive health check of all system components
+        including database, Redis, and RabbitMQ
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: System is healthy
+          schema:
+            $ref: '#/definitions/dto.HealthResponse'
+        "503":
+          description: System is unhealthy
+          schema:
+            $ref: '#/definitions/dto.HealthResponse'
+      summary: System health check
+      tags:
+      - health
+  /live:
+    get:
+      consumes:
+      - application/json
+      description: Checks if the service is alive and responsive
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Service is alive
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Service liveness check
+      tags:
+      - health
+  /orders:
+    get:
+      consumes:
+      - application/json
+      description: |-
+        Get paginated list of orders with optional filtering
+        Retrieves a paginated list of orders with support for filtering by customer, status, and date range
+      parameters:
+      - default: auto-generated
+        description: Correlation ID for request tracing
+        in: header
+        name: X-Correlation-ID
+        type: string
+      - default: 1
+        description: Page number
+        in: query
+        minimum: 1
+        name: page
+        type: integer
+      - default: 10
+        description: Number of items per page
+        in: query
+        maximum: 100
+        minimum: 1
+        name: page_size
+        type: integer
+      - description: Filter by customer ID
+        format: uuid
+        in: query
+        name: customer_id
+        type: string
+      - description: Filter by order status
+        enum:
+        - pending
+        - stock_verified
+        - payment_processing
+        - payment_completed
+        - confirmed
+        - failed
+        - cancelled
+        in: query
+        name: status
+        type: string
+      - description: Filter orders created from this date
+        format: date-time
+        in: query
+        name: created_from
+        type: string
+      - description: Filter orders created until this date
+        format: date-time
+        in: query
+        name: created_to
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of orders
+          schema:
+            allOf:
+            - $ref: '#/definitions/PaginationResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/OrderResponse'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request - Invalid query parameters
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      summary: List Orders
+      tags:
+      - Orders
+      x-correlation-id: true
+    post:
+      consumes:
+      - application/json
+      description: |-
+        Create a new order asynchronously
+        This endpoint accepts an order creation request, validates it, stores it in the database,
+        publishes an event to the message queue, and returns immediately with 202 Accepted.
+        The actual order processing (stock verification, payment, etc.) happens asynchronously.
+      parameters:
+      - default: auto-generated
+        description: Correlation ID for request tracing
+        in: header
+        name: X-Correlation-ID
+        type: string
+      - description: Idempotency key to prevent duplicate requests
+        in: header
+        name: X-Idempotency-Key
+        type: string
+      - description: Order creation request
+        in: body
+        name: order
+        required: true
+        schema:
+          $ref: '#/definitions/OrderRequest'
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: Order accepted for processing
+          schema:
+            allOf:
+            - $ref: '#/definitions/SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/OrderResponse'
+              type: object
+        "400":
+          description: Bad Request - Invalid input
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "409":
+          description: Conflict - Duplicate request (idempotency)
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "422":
+          description: Unprocessable Entity - Validation errors
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      summary: Create Order
+      tags:
+      - Orders
+      x-correlation-id: true
+      x-idempotency: true
+  /orders/{id}:
+    get:
+      consumes:
+      - application/json
+      description: |-
+        Get order details by ID
+        Retrieves detailed information about a specific order including its current status and processing history
+      parameters:
+      - default: auto-generated
+        description: Correlation ID for request tracing
+        in: header
+        name: X-Correlation-ID
+        type: string
+      - description: Order ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Order details
+          schema:
+            allOf:
+            - $ref: '#/definitions/SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/OrderResponse'
+              type: object
+        "400":
+          description: Bad Request - Invalid order ID format
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "404":
+          description: Not Found - Order not found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      summary: Get Order
+      tags:
+      - Orders
+      x-correlation-id: true
+  /ready:
+    get:
+      consumes:
+      - application/json
+      description: Checks if the service is ready to accept traffic (lighter check
+        than health)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Service is ready
+          schema:
+            additionalProperties: true
+            type: object
+        "503":
+          description: Service is not ready
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Service readiness check
+      tags:
+      - health
+schemes:
+- http
+- https
+securityDefinitions:
+  BearerAuth:
+    description: 'Bearer token authentication. Format: "Bearer {token}"'
+    in: header
+    name: Authorization
+    type: apiKey
+    x-extension-openapi: '{"info":{"x-logo":{"url":"https://order-processor.example.com/logo.png"}}}'
+swagger: "2.0"

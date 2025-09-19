@@ -63,6 +63,46 @@ func NewOrderItem(orderID, productID uuid.UUID, productName string, quantity int
 	}, nil
 }
 
+// NewOrderItemForOrder creates a new order item without requiring an order ID upfront
+// The order ID will be set when the item is added to an order
+func NewOrderItemForOrder(productID uuid.UUID, productName string, quantity int, unitPrice *Money) (*OrderItem, error) {
+	if productID == uuid.Nil {
+		return nil, ErrProductIDRequired
+	}
+
+	if productName == "" {
+		return nil, ErrProductNameRequired
+	}
+
+	if quantity <= 0 {
+		return nil, ErrInvalidQuantity
+	}
+
+	if unitPrice == nil || !unitPrice.IsPositive() {
+		return nil, ErrInvalidUnitPrice
+	}
+
+	// Calculate total price
+	totalPrice, err := unitPrice.Multiply(float64(quantity))
+	if err != nil {
+		return nil, err
+	}
+
+	now := time.Now()
+
+	return &OrderItem{
+		id:          uuid.New(),
+		orderID:     uuid.Nil, // Will be set when added to order
+		productID:   productID,
+		productName: productName,
+		quantity:    quantity,
+		unitPrice:   unitPrice,
+		totalPrice:  totalPrice,
+		createdAt:   now,
+		updatedAt:   now,
+	}, nil
+}
+
 // ID returns the item ID
 func (oi *OrderItem) ID() uuid.UUID {
 	return oi.id
@@ -150,9 +190,8 @@ func (oi *OrderItem) IsValid() error {
 		return ErrItemIDRequired
 	}
 
-	if oi.orderID == uuid.Nil {
-		return ErrOrderIDRequired
-	}
+	// OrderID can be Nil during item creation, but not when item is part of an order
+	// This validation is context-dependent and will be enforced at the Order level
 
 	if oi.productID == uuid.Nil {
 		return ErrProductIDRequired
@@ -182,6 +221,21 @@ func (oi *OrderItem) IsValid() error {
 
 	if !oi.totalPrice.Equals(*expectedTotal) {
 		return NewBusinessRuleError("total price does not match unit price * quantity")
+	}
+
+	return nil
+}
+
+// IsValidForOrder validates the order item when it's part of an order
+func (oi *OrderItem) IsValidForOrder() error {
+	// First perform basic validation
+	if err := oi.IsValid(); err != nil {
+		return err
+	}
+
+	// Then ensure it has a valid order ID
+	if oi.orderID == uuid.Nil {
+		return ErrOrderIDRequired
 	}
 
 	return nil

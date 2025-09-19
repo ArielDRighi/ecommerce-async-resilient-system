@@ -37,7 +37,7 @@ func NewOrder(customerID uuid.UUID, customerEmail *Email, items []*OrderItem) (*
 
 	// Validate all items
 	for _, item := range items {
-		if err := item.IsValid(); err != nil {
+		if err := item.IsValidForOrder(); err != nil {
 			return nil, err
 		}
 	}
@@ -281,7 +281,7 @@ func (o *Order) IsValid() error {
 
 	// Validate all items
 	for _, item := range o.items {
-		if err := item.IsValid(); err != nil {
+		if err := item.IsValidForOrder(); err != nil {
 			return err
 		}
 	}
