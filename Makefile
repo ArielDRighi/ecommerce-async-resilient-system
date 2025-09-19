@@ -66,8 +66,9 @@ test-unit: ## Run unit tests
 	go test -v -race -timeout=300s -coverprofile=coverage.out ./...
 	@echo "Unit tests completed"
 
-test-ci: ## Run tests for CI (with coverage and race detection)
+test-ci: ## Run tests for CI (reserved for future CI/CD setup)
 	@echo "Running CI tests..."
+	@echo "Note: Full CI/CD will be configured after Task 3-4"
 	@go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
 	@echo "CI tests completed"
 

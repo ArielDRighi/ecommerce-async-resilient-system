@@ -3,7 +3,7 @@
 
 run:
   timeout: 5m
-  go: '1.21'
+  go: "1.21"
   skip-dirs:
     - vendor
     - third_party
@@ -25,52 +25,52 @@ output:
 linters:
   enable:
     # Enabled by default
-    - errcheck      # Check for unchecked errors
-    - gosimple      # Simplify code
-    - govet         # Vet examines Go source code
-    - ineffassign   # Detect ineffectual assignments
-    - staticcheck   # Go static analysis
-    - typecheck     # Type checking
-    - unused        # Check for unused code
-    
+    - errcheck # Check for unchecked errors
+    - gosimple # Simplify code
+    - govet # Vet examines Go source code
+    - ineffassign # Detect ineffectual assignments
+    - staticcheck # Go static analysis
+    - typecheck # Type checking
+    - unused # Check for unused code
+
     # Additional linters
-    - gci           # Control Go package import order
-    - gofmt         # Check whether code was gofmt-ed
-    - goimports     # Check import formatting
-    - gosec         # Security linter
-    - misspell      # Find commonly misspelled words
-    - revive        # Fast, configurable, extensible, flexible linter
-    - unconvert     # Remove unnecessary type conversions
-    - unparam       # Report unused function parameters
-    - whitespace    # Check for trailing whitespace
-    - godot         # Check if comments end in a period
-    - gofumpt       # More strict gofmt
-    - goconst       # Find repeated strings that could be constants
-    - gocritic      # Most opinionated Go linter
-    - cyclop        # Check cyclomatic complexity
-    - dupl          # Code clone detection
-    - funlen        # Function length
-    - gocognit      # Cognitive complexity
-    - lll           # Line length
-    - nakedret      # Naked returns in functions
-    - nestif        # Nested if statements
-    - prealloc      # Find slice declarations with non-zero initial length
-    - wsl           # Whitespace linter
+    - gci # Control Go package import order
+    - gofmt # Check whether code was gofmt-ed
+    - goimports # Check import formatting
+    - gosec # Security linter
+    - misspell # Find commonly misspelled words
+    - revive # Fast, configurable, extensible, flexible linter
+    - unconvert # Remove unnecessary type conversions
+    - unparam # Report unused function parameters
+    - whitespace # Check for trailing whitespace
+    - godot # Check if comments end in a period
+    - gofumpt # More strict gofmt
+    - goconst # Find repeated strings that could be constants
+    - gocritic # Most opinionated Go linter
+    - cyclop # Check cyclomatic complexity
+    - dupl # Code clone detection
+    - funlen # Function length
+    - gocognit # Cognitive complexity
+    - lll # Line length
+    - nakedret # Naked returns in functions
+    - nestif # Nested if statements
+    - prealloc # Find slice declarations with non-zero initial length
+    - wsl # Whitespace linter
 
   disable:
-    - deadcode      # Deprecated
-    - varcheck      # Deprecated
-    - scopelint     # Deprecated
-    - interfacer    # Deprecated
-    - maligned      # Deprecated
-    - structcheck   # Deprecated
-    - golint        # Deprecated
+    - deadcode # Deprecated
+    - varcheck # Deprecated
+    - scopelint # Deprecated
+    - interfacer # Deprecated
+    - maligned # Deprecated
+    - structcheck # Deprecated
+    - golint # Deprecated
 
 linters-settings:
   gci:
     sections:
-      - standard                           # Standard section: captures all standard packages
-      - default                           # Default section: contains all imports that could not be matched to another section type
+      - standard # Standard section: captures all standard packages
+      - default # Default section: contains all imports that could not be matched to another section type
       - prefix(github.com/username/order-processor) # Custom section: groups all imports with the specified Prefix
     skip-generated: true
     custom-order: true
@@ -172,7 +172,7 @@ issues:
         - lll
 
     # Exclude shadow checking on the variable named err
-    - text: "shadow: declaration of \"err\""
+    - text: 'shadow: declaration of "err"'
       linters:
         - govet
 
