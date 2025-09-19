@@ -52,6 +52,7 @@ A comprehensive demonstration of building resilient, asynchronous order processi
 - Make (optional, for using Makefile commands)
 
 ### Future Dependencies (Tasks 2-3)
+
 - Docker and Docker Compose
 - PostgreSQL 15+
 - RabbitMQ 3.12+
