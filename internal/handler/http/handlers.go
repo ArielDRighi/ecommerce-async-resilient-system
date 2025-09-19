@@ -29,11 +29,14 @@
 package http
 
 import (
+	"context"
 	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/username/order-processor/internal/health"
 	"github.com/username/order-processor/internal/logger"
+	"go.uber.org/zap"
 )
 
 // ErrorResponse represents an error response
@@ -128,42 +131,57 @@ type OrderResponse struct {
 // @Success 503 {object} ErrorResponse "Service Unavailable"
 // @Router /health [get]
 // @x-correlation-id true
-func HealthCheckHandler(c *gin.Context) {
-	correlationID := logger.GetCorrelationID(c)
-	startTime := time.Now()
-
-	// TODO: Implement actual health checks for dependencies
-	health := HealthCheckResponse{
-		Status:        "healthy",
-		Version:       "1.0.0",
-		Timestamp:     time.Now().Format(time.RFC3339),
-		CorrelationID: correlationID,
-		Services: map[string]ServiceHealthInfo{
-			"database": {
-				Status:    "healthy",
-				Latency:   "2ms",
-				LastCheck: time.Now().Format(time.RFC3339),
-			},
-			"redis": {
-				Status:    "healthy",
-				Latency:   "1ms",
-				LastCheck: time.Now().Format(time.RFC3339),
-			},
-			"rabbitmq": {
-				Status:    "healthy",
-				Latency:   "3ms",
-				LastCheck: time.Now().Format(time.RFC3339),
-			},
-		},
-		Uptime: time.Since(startTime).String(),
+func HealthCheckHandler(healthService *health.Service) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		correlationID := logger.GetCorrelationID(c)
+		
+		// Create context with timeout for health checks
+		ctx, cancel := context.WithTimeout(c.Request.Context(), 10*time.Second)
+		defer cancel()
+		
+		// Perform health checks
+		healthStatus := healthService.CheckAll(ctx)
+		
+		// Convert health status to response format
+		services := make(map[string]ServiceHealthInfo)
+		for _, check := range healthStatus.Checks {
+			serviceInfo := ServiceHealthInfo{
+				Status:    check.Status,
+				Latency:   check.Duration.String(),
+				LastCheck: healthStatus.Timestamp.Format(time.RFC3339),
+			}
+			if check.Error != "" {
+				serviceInfo.Error = check.Error
+			}
+			services[check.Name] = serviceInfo
+		}
+		
+		response := HealthCheckResponse{
+			Status:        healthStatus.Status,
+			Version:       "1.0.0",
+			Timestamp:     healthStatus.Timestamp.Format(time.RFC3339),
+			CorrelationID: correlationID,
+			Services:      services,
+			Uptime:        healthStatus.Details["total_duration"].(time.Duration).String(),
+		}
+		
+		// Log health check request
+		healthLogger := logger.WithCorrelationID(correlationID)
+		healthLogger = logger.WithComponent("health-check")
+		healthLogger.Info("Health check requested",
+			zap.String("status", healthStatus.Status),
+			zap.Int("checks_count", len(healthStatus.Checks)),
+			zap.Duration("duration", healthStatus.Details["total_duration"].(time.Duration)),
+		)
+		
+		// Return appropriate status code
+		statusCode := http.StatusOK
+		if healthStatus.Status != "healthy" {
+			statusCode = http.StatusServiceUnavailable
+		}
+		
+		c.JSON(statusCode, response)
 	}
-
-	// Log health check request
-	healthLogger := logger.WithCorrelationID(correlationID)
-	healthLogger = logger.WithComponent("health-check")
-	healthLogger.Info("Health check requested")
-
-	c.JSON(http.StatusOK, health)
 }
 
 // CreateOrderHandler handles order creation requests

@@ -1,8 +1,10 @@
 package config
 
 import (
+	"database/sql"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/spf13/viper"
 	"github.com/username/order-processor/internal/logger"
@@ -29,15 +31,16 @@ type ServerConfig struct {
 
 // DatabaseConfig holds database configuration
 type DatabaseConfig struct {
-	Host         string `mapstructure:"host"`
-	Port         int    `mapstructure:"port"`
-	User         string `mapstructure:"user"`
-	Password     string `mapstructure:"password"`
-	DBName       string `mapstructure:"dbname"`
-	SSLMode      string `mapstructure:"sslmode"`
-	MaxOpenConns int    `mapstructure:"max_open_conns"`
-	MaxIdleConns int    `mapstructure:"max_idle_conns"`
-	MaxLifetime  int    `mapstructure:"max_lifetime"` // minutes
+	Host            string `mapstructure:"host"`
+	Port            int    `mapstructure:"port"`
+	User            string `mapstructure:"user"`
+	Password        string `mapstructure:"password"`
+	Database        string `mapstructure:"database"`
+	SSLMode         string `mapstructure:"sslmode"`
+	MaxOpenConns    int    `mapstructure:"max_open_conns"`
+	MaxIdleConns    int    `mapstructure:"max_idle_conns"`
+	ConnMaxLifetime int    `mapstructure:"conn_max_lifetime"`  // minutes
+	ConnMaxIdleTime int    `mapstructure:"conn_max_idle_time"` // minutes
 }
 
 // RedisConfig holds Redis configuration
@@ -108,6 +111,22 @@ type CircuitBreakerConfig struct {
 	HalfOpenRequests  int    `mapstructure:"half_open_requests"`
 }
 
+// DBStats represents database connection pool statistics
+type DBStats struct {
+	OpenConnections int
+	InUse          int
+	Idle           int
+	WaitCount      int64
+	WaitDuration   time.Duration
+	MaxOpenConns   int
+	MaxIdleConns   int
+	MaxLifetime    time.Duration
+	MaxIdleTime    time.Duration
+}
+
+// DB is an alias for sql.DB to avoid circular imports
+type DB = sql.DB
+
 // Load loads configuration from files and environment variables
 func Load() (*Config, error) {
 	viper.SetConfigName("config")
@@ -162,11 +181,12 @@ func setDefaults() {
 	viper.SetDefault("database.port", 5432)
 	viper.SetDefault("database.user", "postgres")
 	viper.SetDefault("database.password", "postgres")
-	viper.SetDefault("database.dbname", "order_processor")
+	viper.SetDefault("database.database", "order_processor")
 	viper.SetDefault("database.sslmode", "disable")
 	viper.SetDefault("database.max_open_conns", 25)
 	viper.SetDefault("database.max_idle_conns", 5)
-	viper.SetDefault("database.max_lifetime", 30)
+	viper.SetDefault("database.conn_max_lifetime", 30)
+	viper.SetDefault("database.conn_max_idle_time", 15)
 
 	// Redis defaults
 	viper.SetDefault("redis.host", "localhost")
@@ -264,7 +284,7 @@ func (c *Config) GetDatabaseURL() string {
 		c.Database.Port,
 		c.Database.User,
 		c.Database.Password,
-		c.Database.DBName,
+		c.Database.Database,
 		c.Database.SSLMode,
 	)
 }
