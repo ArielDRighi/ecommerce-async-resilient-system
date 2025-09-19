@@ -897,10 +897,15 @@ func (p *outboxProcessor) processEventSync(ctx context.Context, event models.Out
 	// Update success metrics
 	processingDuration := time.Since(start)
 	p.updateMetrics(func(m *OutboxMetrics) {
+		currentCount := m.TotalProcessed
 		m.TotalProcessed++
 		m.ConsecutiveFailures = 0
 		m.LastProcessedAt = time.Now()
-		m.AverageProcessingTime = time.Duration((int64(m.AverageProcessingTime)*m.TotalProcessed + int64(processingDuration)) / (m.TotalProcessed + 1))
+		if currentCount == 0 {
+			m.AverageProcessingTime = processingDuration
+		} else {
+			m.AverageProcessingTime = time.Duration((int64(m.AverageProcessingTime)*int64(currentCount) + int64(processingDuration)) / int64(m.TotalProcessed))
+		}
 	})
 	
 	logger.Info("Event processed successfully",
@@ -1089,18 +1094,19 @@ func (p *outboxProcessor) processEvent(ctx context.Context, event models.OutboxE
 		zap.Duration("processing_time", processingTime),
 	)
 	
-	// Update metrics
+	// Update metrics with corrected calculation
 	p.updateMetrics(func(m *OutboxMetrics) {
+		currentCount := m.TotalProcessed
 		m.TotalProcessed++
 		m.LastProcessedAt = time.Now()
 		m.LastProcessingTime = processingTime
 		
-		// Update average processing time
-		if m.TotalProcessed == 1 {
+		// Update average processing time with correct math
+		if currentCount == 0 {
 			m.AverageProcessingTime = processingTime
 		} else {
 			m.AverageProcessingTime = time.Duration(
-				(int64(m.AverageProcessingTime)*m.TotalProcessed + int64(processingTime)) / (m.TotalProcessed + 1),
+				(int64(m.AverageProcessingTime)*int64(currentCount) + int64(processingTime)) / int64(m.TotalProcessed),
 			)
 		}
 		
@@ -1437,7 +1443,7 @@ func (p *outboxProcessor) reportMetrics() {
 	}
 	
 	// Log performance insights
-	if metrics.TotalProcessed > 0 {
+	if metrics.TotalProcessed > 0 && !metrics.LastProcessedAt.IsZero() {
 		avgEventsPerSecond := float64(metrics.TotalProcessed) / time.Since(metrics.LastProcessedAt).Seconds()
 		
 		p.logger.Info("Performance insights",

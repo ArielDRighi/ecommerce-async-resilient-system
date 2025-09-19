@@ -153,10 +153,15 @@ func main() {
 	}
 
 	// Start worker service
-	ctx, cancel = context.WithCancel(context.Background())
-	defer cancel()
+	log.Info("Starting worker service",
+		zap.String("event", "worker_startup"),
+		zap.String("correlation_id", workerCorrelationID),
+	)
 
-	if err := workerService.Start(ctx); err != nil {
+	serviceCtx, serviceCancel := context.WithCancel(context.Background())
+	defer serviceCancel()
+
+	if err := workerService.Start(serviceCtx); err != nil {
 		log.Fatal("Failed to start worker service",
 			zap.String("event", "worker_service_start_failed"),
 			zap.Error(err),

@@ -67,6 +67,7 @@ type WorkerService struct {
 	// State management
 	running        bool
 	runningMu      sync.RWMutex
+	startTime      time.Time
 	
 	// Context for graceful shutdown
 	ctx            context.Context
@@ -147,6 +148,7 @@ func NewWorkerService(cfg WorkerServiceConfig) (*WorkerService, error) {
 		logger:    cfg.Logger,
 		ctx:       ctx,
 		cancel:    cancel,
+		startTime: time.Now(),
 	}
 	
 	cfg.Logger.Info("Worker service created successfully",
@@ -277,7 +279,7 @@ func (s *WorkerService) GetMetrics() WorkerServiceMetrics {
 	return WorkerServiceMetrics{
 		ProcessorMetrics: processorMetrics,
 		ServiceStatus:    s.GetStatus(),
-		Uptime:          time.Since(time.Now()), // This would be tracked properly in real implementation
+		Uptime:          time.Since(s.startTime),
 	}
 }
 
