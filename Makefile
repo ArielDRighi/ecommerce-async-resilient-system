@@ -66,6 +66,11 @@ test-unit: ## Run unit tests
 	go test -v -race -timeout=300s -coverprofile=coverage.out ./...
 	@echo "Unit tests completed"
 
+test-ci: ## Run tests for CI (with coverage and race detection)
+	@echo "Running CI tests..."
+	@go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
+	@echo "CI tests completed"
+
 test-integration: ## Run integration tests
 	@echo "Running integration tests..."
 	go test -v -race -timeout=600s -tags=integration ./tests/integration/...

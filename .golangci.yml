@@ -1,0 +1,203 @@
+# golangci-lint configuration
+# https://golangci-lint.run/usage/configuration/
+
+run:
+  timeout: 5m
+  go: '1.21'
+  skip-dirs:
+    - vendor
+    - third_party
+    - testdata
+    - examples
+    - Godeps
+    - builtin
+  skip-files:
+    - ".*_test.go"
+    - ".*_mock.go"
+    - ".*.pb.go"
+
+output:
+  format: colored-line-number
+  print-issued-lines: true
+  print-linter-name: true
+  uniq-by-line: true
+
+linters:
+  enable:
+    # Enabled by default
+    - errcheck      # Check for unchecked errors
+    - gosimple      # Simplify code
+    - govet         # Vet examines Go source code
+    - ineffassign   # Detect ineffectual assignments
+    - staticcheck   # Go static analysis
+    - typecheck     # Type checking
+    - unused        # Check for unused code
+    
+    # Additional linters
+    - gci           # Control Go package import order
+    - gofmt         # Check whether code was gofmt-ed
+    - goimports     # Check import formatting
+    - gosec         # Security linter
+    - misspell      # Find commonly misspelled words
+    - revive        # Fast, configurable, extensible, flexible linter
+    - unconvert     # Remove unnecessary type conversions
+    - unparam       # Report unused function parameters
+    - whitespace    # Check for trailing whitespace
+    - godot         # Check if comments end in a period
+    - gofumpt       # More strict gofmt
+    - goconst       # Find repeated strings that could be constants
+    - gocritic      # Most opinionated Go linter
+    - cyclop        # Check cyclomatic complexity
+    - dupl          # Code clone detection
+    - funlen        # Function length
+    - gocognit      # Cognitive complexity
+    - lll           # Line length
+    - nakedret      # Naked returns in functions
+    - nestif        # Nested if statements
+    - prealloc      # Find slice declarations with non-zero initial length
+    - wsl           # Whitespace linter
+
+  disable:
+    - deadcode      # Deprecated
+    - varcheck      # Deprecated
+    - scopelint     # Deprecated
+    - interfacer    # Deprecated
+    - maligned      # Deprecated
+    - structcheck   # Deprecated
+    - golint        # Deprecated
+
+linters-settings:
+  gci:
+    sections:
+      - standard                           # Standard section: captures all standard packages
+      - default                           # Default section: contains all imports that could not be matched to another section type
+      - prefix(github.com/username/order-processor) # Custom section: groups all imports with the specified Prefix
+    skip-generated: true
+    custom-order: true
+
+  gofmt:
+    simplify: true
+
+  goimports:
+    local-prefixes: github.com/username/order-processor
+
+  gosec:
+    severity: medium
+    confidence: medium
+    excludes:
+      - G104 # Audit errors not checked
+      - G204 # Subprocess launched with variable
+      - G304 # File path provided as taint input
+
+  revive:
+    severity: warning
+    rules:
+      - name: exported
+        severity: warning
+        disabled: false
+        arguments:
+          - "checkPrivateReceivers"
+          - "sayRepetitiveInsteadOfStutters"
+
+  gocritic:
+    enabled-tags:
+      - diagnostic
+      - experimental
+      - opinionated
+      - performance
+      - style
+    disabled-checks:
+      - dupImport # https://github.com/go-critic/go-critic/issues/845
+      - ifElseChain
+      - octalLiteral
+      - whyNoLint
+
+  cyclop:
+    max-complexity: 15
+    package-average: 10.0
+    skip-tests: true
+
+  dupl:
+    threshold: 100
+
+  funlen:
+    lines: 100
+    statements: 50
+
+  gocognit:
+    min-complexity: 15
+
+  lll:
+    line-length: 120
+
+  nakedret:
+    max-func-lines: 30
+
+  nestif:
+    min-complexity: 4
+
+  prealloc:
+    simple: true
+    range-loops: true
+    for-loops: false
+
+  wsl:
+    strict-append: true
+    allow-assign-and-call: true
+    allow-multiline-assign: true
+    allow-cuddle-declarations: false
+    allow-trailing-comment: false
+    force-case-trailing-whitespace: 0
+    force-err-cuddling: false
+    allow-separated-leading-comment: false
+
+issues:
+  exclude-rules:
+    # Exclude some linters from running on tests files
+    - path: _test\.go
+      linters:
+        - gocyclo
+        - errcheck
+        - dupl
+        - gosec
+        - funlen
+        - goconst
+        - gocognit
+        - scopelint
+        - lll
+
+    # Exclude known linters from partially hard-to-fix issues
+    - path: internal/config/
+      linters:
+        - lll
+
+    # Exclude shadow checking on the variable named err
+    - text: "shadow: declaration of \"err\""
+      linters:
+        - govet
+
+    # Exclude certain gosec rules
+    - text: "weak cryptographic primitive"
+      linters:
+        - gosec
+
+    # Exclude some staticcheck messages
+    - text: "SA9003:"
+      linters:
+        - staticcheck
+
+  exclude-use-default: false
+  max-issues-per-linter: 0
+  max-same-issues: 0
+  new: false
+
+severity:
+  default-severity: error
+  case-sensitive: false
+  rules:
+    - linters:
+        - dupl
+      severity: info
+    - linters:
+        - gocritic
+      severity: info
