@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/username/order-processor/internal/domain"
 )
 
 // CreateOrderRequest represents the request to create a new order
@@ -12,16 +13,16 @@ type CreateOrderRequest struct {
 	// Customer ID (UUID format)
 	// @Description Unique identifier for the customer placing the order
 	// @Example "123e4567-e89b-12d3-a456-426614174000"
-	CustomerID uuid.UUID `json:"customer_id" binding:"required" validate:"required" example:"123e4567-e89b-12d3-a456-426614174000"`
+	CustomerID uuid.UUID `json:"customer_id" example:"123e4567-e89b-12d3-a456-426614174000"`
 
 	// Customer email address
 	// @Description Valid email address of the customer
 	// @Example "customer@example.com"
-	CustomerEmail string `json:"customer_email" binding:"required,email" validate:"required,email" example:"customer@example.com"`
+	CustomerEmail string `json:"customer_email" example:"customer@example.com"`
 
 	// List of items in the order
 	// @Description Array of items to be included in the order
-	Items []CreateOrderItemRequest `json:"items" binding:"required,min=1,dive" validate:"required,min=1,dive"`
+	Items []CreateOrderItemRequest `json:"items"`
 
 	// Idempotency key for preventing duplicate orders
 	// @Description Optional idempotency key to prevent duplicate order creation
@@ -35,22 +36,22 @@ type CreateOrderItemRequest struct {
 	// Product ID (UUID format)
 	// @Description Unique identifier for the product
 	// @Example "456e7890-e89b-12d3-a456-426614174001"
-	ProductID uuid.UUID `json:"product_id" binding:"required" validate:"required" example:"456e7890-e89b-12d3-a456-426614174001"`
+	ProductID uuid.UUID `json:"product_id" example:"456e7890-e89b-12d3-a456-426614174001"`
 
 	// Product name
 	// @Description Name/description of the product
 	// @Example "Wireless Bluetooth Headphones"
-	ProductName string `json:"product_name" binding:"required,min=1,max=255" validate:"required,min=1,max=255" example:"Wireless Bluetooth Headphones"`
+	ProductName string `json:"product_name" example:"Wireless Bluetooth Headphones"`
 
 	// Quantity of the product
 	// @Description Number of units of this product in the order
 	// @Example 2
-	Quantity int `json:"quantity" binding:"required,min=1" validate:"required,min=1" example:"2"`
+	Quantity int `json:"quantity" example:"2"`
 
 	// Unit price of the product in cents
 	// @Description Price per unit in cents (e.g., $19.99 = 1999)
 	// @Example 1999
-	UnitPrice int64 `json:"unit_price" binding:"required,min=1" validate:"required,min=1" example:"1999"`
+	UnitPrice int64 `json:"unit_price" example:"1999"`
 }
 
 // ListOrdersRequest represents query parameters for listing orders
@@ -95,4 +96,51 @@ func (r *ListOrdersRequest) Validate() {
 	if r.Limit <= 0 {
 		r.Limit = 20
 	}
+}
+
+// ToDomainOrder converts the CreateOrderRequest to a domain Order entity
+// This method performs domain validation and returns any validation errors
+func (r *CreateOrderRequest) ToDomainOrder() (*domain.Order, error) {
+	// Convert customer email to domain Email value object
+	customerEmail, err := domain.NewEmail(r.CustomerEmail)
+	if err != nil {
+		return nil, err
+	}
+
+	// Create an empty order first, then add items
+	// We'll use a temporary approach: create items with a temporary orderID, 
+	// then let NewOrder fix the orderIDs
+	tempOrderID := uuid.New()
+	
+	// Convert order items to domain OrderItems with temporary orderID
+	var orderItems []*domain.OrderItem
+	for _, item := range r.Items {
+		// Convert unit price (in cents) to domain Money value object
+		unitPrice, err := domain.NewMoneyFromCents(item.UnitPrice, domain.USD)
+		if err != nil {
+			return nil, err
+		}
+
+		// Create domain OrderItem with temporary orderID for validation
+		orderItem, err := domain.NewOrderItem(
+			tempOrderID, // temporary orderID
+			item.ProductID,
+			item.ProductName,
+			item.Quantity,
+			unitPrice,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		orderItems = append(orderItems, orderItem)
+	}
+
+	// Create domain Order with validation
+	// NewOrder will update the orderID in all items automatically
+	return domain.NewOrder(
+		r.CustomerID,
+		customerEmail,
+		orderItems,
+	)
 }

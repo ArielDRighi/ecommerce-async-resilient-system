@@ -49,10 +49,12 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 
 	"github.com/username/order-processor/internal/config"
+	"github.com/username/order-processor/internal/handler/http/dto"
 	"github.com/username/order-processor/internal/logger"
 
 	_ "github.com/username/order-processor/docs"
@@ -159,7 +161,7 @@ func main() {
 		// Order routes with proper validation and error handling
 		orders := v1.Group("/orders")
 		{
-			// POST /api/v1/orders - Create order with full validation
+			// POST /api/v1/orders - Create order with domain validation
 			orders.POST("", func(c *gin.Context) {
 				correlationID := c.GetHeader("X-Correlation-ID")
 				if correlationID == "" {
@@ -188,59 +190,55 @@ func main() {
 					return
 				}
 
-				var req map[string]interface{}
-				if err := c.ShouldBindJSON(&req); err != nil {
-					logger.SugaredLogger.Errorw("Invalid JSON request",
+				// Bind JSON to CreateOrderRequest DTO
+				var request dto.CreateOrderRequest
+				if err := c.ShouldBindJSON(&request); err != nil {
+					logger.SugaredLogger.Errorw("JSON binding failed",
 						"correlation_id", correlationID,
 						"error", err.Error(),
 					)
-					c.JSON(http.StatusBadRequest, gin.H{
-						"error": "Bad Request",
-						"message": "Invalid JSON format",
-						"details": err.Error(),
-						"correlation_id": correlationID,
-						"timestamp": time.Now(),
+					c.JSON(http.StatusBadRequest, dto.ErrorResponse{
+						Code:          dto.ErrorCodeInvalidFormat,
+						Message:       "Invalid JSON format",
+						Details:       map[string]interface{}{"error": err.Error()},
+						CorrelationID: correlationID,
+						Timestamp:     time.Now(),
+						Path:          c.Request.URL.Path,
 					})
 					return
 				}
 
-				// Validate required fields
-				errors := []string{}
-				if _, ok := req["customer_id"]; !ok {
-					errors = append(errors, "customer_id is required")
-				}
-				if _, ok := req["items"]; !ok {
-					errors = append(errors, "items is required")
-				}
-
-				if len(errors) > 0 {
-					logger.SugaredLogger.Errorw("Validation failed",
+				// Convert to domain entity (this performs domain validation)
+				errorMapper := dto.NewDomainErrorMapper()
+				domainOrder, err := request.ToDomainOrder()
+				if err != nil {
+					logger.SugaredLogger.Errorw("Domain validation failed",
 						"correlation_id", correlationID,
-						"validation_errors", errors,
+						"validation_error", err.Error(),
 					)
-					c.JSON(http.StatusBadRequest, gin.H{
-						"error": "Validation Failed",
-						"message": "Request validation failed",
-						"validation_errors": errors,
-						"correlation_id": correlationID,
-						"timestamp": time.Now(),
-					})
+					statusCode, errorResponse := errorMapper.MapDomainErrorToHTTP(err, correlationID, c.Request.URL.Path)
+					c.JSON(statusCode, errorResponse)
 					return
 				}
 
-				logger.SugaredLogger.Infow("Order creation request validated successfully",
+				logger.SugaredLogger.Infow("Order creation request validated successfully with domain validation",
 					"correlation_id", correlationID,
-					"customer_id", req["customer_id"],
+					"customer_id", domainOrder.CustomerID(),
+					"customer_email", domainOrder.CustomerEmail().String(),
+					"total_amount_cents", domainOrder.TotalAmount().AmountInCents(),
+					"items_count", len(domainOrder.Items()),
 				)
 
+				// Create response DTO from domain entity
+				createResponse := dto.CreateOrderResponse{
+					ID:            domainOrder.ID(),
+					Message:       "Order created successfully and queued for processing",
+					Status:        string(domainOrder.Status()),
+					CorrelationID: correlationID,
+				}
+
 				// Return 202 Accepted for async processing
-				c.JSON(http.StatusAccepted, gin.H{
-					"message": "Order creation request accepted for processing",
-					"order_id": fmt.Sprintf("order_%d", time.Now().UnixNano()),
-					"status": "accepted",
-					"correlation_id": correlationID,
-					"timestamp": time.Now(),
-				})
+				c.JSON(http.StatusAccepted, createResponse)
 			})
 
 			// GET /api/v1/orders/:id - Get order with validation
@@ -258,15 +256,16 @@ func main() {
 					"method", "GET",
 				)
 
-				// Validate UUID format (basic validation)
-				if len(orderID) < 10 {
+				// Validate UUID format (proper UUID validation)
+				if _, err := uuid.Parse(orderID); err != nil {
 					logger.SugaredLogger.Errorw("Invalid order ID format",
 						"correlation_id", correlationID,
 						"order_id", orderID,
+						"error", err.Error(),
 					)
 					c.JSON(http.StatusBadRequest, gin.H{
 						"error": "Bad Request",
-						"message": "Invalid order ID format",
+						"message": "Invalid order ID format - must be a valid UUID",
 						"correlation_id": correlationID,
 						"timestamp": time.Now(),
 					})
@@ -382,22 +381,24 @@ func main() {
 					errors = append(errors, "email is required and cannot be empty")
 				}
 
-				if len(errors) > 0 {
-					logger.SugaredLogger.Warnw("Validation errors found",
-						"correlation_id", correlationID,
-						"validation_errors", errors,
-					)
-					c.JSON(http.StatusBadRequest, gin.H{
-						"error": "Validation Failed",
-						"message": "Request validation failed",
-						"validation_errors": errors,
-						"correlation_id": correlationID,
-						"timestamp": time.Now(),
-					})
-					return
+			if len(errors) > 0 {
+				logger.SugaredLogger.Warnw("Validation errors found",
+					"correlation_id", correlationID,
+					"validation_errors", errors,
+				)
+				errorResponse := dto.ErrorResponse{
+					Code:          dto.ErrorCodeValidation,
+					Message:       "Validation failed for one or more fields",
+					Details:       map[string]interface{}{"validation_errors": errors},
+					CorrelationID: correlationID,
+					Timestamp:     time.Now(),
+					Path:          c.Request.URL.Path,
 				}
-
-				logger.SugaredLogger.Infow("Validation successful",
+				c.JSON(http.StatusBadRequest, errorResponse)
+				return
+			}
+			
+			logger.SugaredLogger.Infow("Validation successful",
 					"correlation_id", correlationID,
 					"validated_data", req,
 				)

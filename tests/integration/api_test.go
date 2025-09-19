@@ -35,6 +35,7 @@ func SetupTestServer() *TestServer {
 			correlationID = fmt.Sprintf("test_%d", time.Now().UnixNano())
 		}
 		c.Header("X-Correlation-ID", correlationID)
+		c.Set("correlation_id", correlationID)  // Store in context for handlers
 		c.Next()
 	})
 	
@@ -64,25 +65,30 @@ func SetupTestServer() *TestServer {
 	{
 		orders := v1.Group("/orders")
 		{
-			orders.POST("", func(c *gin.Context) {
-				correlationID := c.GetHeader("X-Correlation-ID")
-				
-				if c.GetHeader("Content-Type") != "application/json" {
-					c.JSON(http.StatusUnsupportedMediaType, gin.H{
-						"error":          "Unsupported Media Type",
-						"message":        "Content-Type must be application/json",
-						"correlation_id": correlationID,
-					})
-					return
-				}
-				
-				var req map[string]interface{}
-				if err := c.ShouldBindJSON(&req); err != nil {
+		orders.POST("", func(c *gin.Context) {
+			correlationID, _ := c.Get("correlation_id")
+			correlationIDStr := correlationID.(string)
+			
+			if c.GetHeader("Content-Type") != "application/json" {
+				c.JSON(http.StatusUnsupportedMediaType, gin.H{
+					"code":           "UNSUPPORTED_MEDIA_TYPE",
+					"message":        "Content-Type must be application/json",
+					"correlation_id": correlationIDStr,
+					"timestamp":      time.Now(),
+					"path":           c.Request.URL.Path,
+				})
+				return
+			}
+			
+			var req map[string]interface{}
+			if err := c.ShouldBindJSON(&req); err != nil {
 					c.JSON(http.StatusBadRequest, gin.H{
-						"error":          "Bad Request",
-						"message":        "Invalid JSON format",
-						"details":        err.Error(),
-						"correlation_id": correlationID,
+						"code":           "VALIDATION_ERROR",
+						"message":        "Validation failed for one or more fields",
+						"details":        gin.H{"validation_errors": []string{"Invalid JSON format"}},
+						"correlation_id": correlationIDStr,
+						"timestamp":      time.Now(),
+						"path":           c.Request.URL.Path,
 					})
 					return
 				}
@@ -97,10 +103,12 @@ func SetupTestServer() *TestServer {
 				
 				if len(errors) > 0 {
 					c.JSON(http.StatusBadRequest, gin.H{
-						"error":             "Validation Failed",
-						"message":           "Request validation failed",
-						"validation_errors": errors,
-						"correlation_id":    correlationID,
+						"code":           "VALIDATION_ERROR",
+						"message":        "Validation failed for one or more fields",
+						"details":        gin.H{"validation_errors": errors},
+						"correlation_id": correlationIDStr,
+						"timestamp":      time.Now(),
+						"path":           c.Request.URL.Path,
 					})
 					return
 				}
@@ -109,10 +117,10 @@ func SetupTestServer() *TestServer {
 					"message":        "Order creation request accepted",
 					"order_id":       fmt.Sprintf("order_%d", time.Now().UnixNano()),
 					"status":         "accepted",
-					"correlation_id": correlationID,
+					"correlation_id": correlationIDStr,
 				})
 			})
-			
+
 			orders.GET("", func(c *gin.Context) {
 				c.JSON(http.StatusOK, gin.H{
 					"orders":         []interface{}{},
@@ -178,8 +186,10 @@ func TestAcceptanceCriteria(t *testing.T) {
 		err = json.NewDecoder(resp.Body).Decode(&response)
 		require.NoError(t, err)
 		
-		assert.Equal(t, "Validation Failed", response["error"])
-		assert.NotNil(t, response["validation_errors"])
+		assert.Equal(t, "VALIDATION_ERROR", response["code"])
+		details, ok := response["details"].(map[string]interface{})
+		assert.True(t, ok, "details should be a map")
+		assert.NotNil(t, details["validation_errors"])
 	})
 	
 	t.Run("Error Response Structure", func(t *testing.T) {
@@ -195,7 +205,7 @@ func TestAcceptanceCriteria(t *testing.T) {
 		require.NoError(t, err)
 		
 		// Check error response structure
-		assert.NotEmpty(t, response["error"])
+		assert.NotEmpty(t, response["code"])
 		assert.NotEmpty(t, response["message"])
 		assert.NotEmpty(t, response["correlation_id"])
 	})
@@ -267,21 +277,21 @@ func TestOrderCreationValidation(t *testing.T) {
 			payload:        `invalid json`,
 			contentType:    "application/json",
 			expectedStatus: http.StatusBadRequest,
-			expectedError:  "Bad Request",
+			expectedError:  "VALIDATION_ERROR",
 		},
 		{
 			name:           "Missing required fields",
 			payload:        `{"invalid": "data"}`,
 			contentType:    "application/json",
 			expectedStatus: http.StatusBadRequest,
-			expectedError:  "Validation Failed",
+			expectedError:  "VALIDATION_ERROR",
 		},
 		{
 			name:           "Invalid content type",
 			payload:        `test`,
 			contentType:    "text/plain",
 			expectedStatus: http.StatusUnsupportedMediaType,
-			expectedError:  "Unsupported Media Type",
+			expectedError:  "UNSUPPORTED_MEDIA_TYPE",
 		},
 	}
 	
@@ -308,7 +318,7 @@ func TestOrderCreationValidation(t *testing.T) {
 			assert.NotEmpty(t, response["correlation_id"])
 			
 			if tt.expectedError != "" {
-				assert.Equal(t, tt.expectedError, response["error"])
+				assert.Equal(t, tt.expectedError, response["code"])
 			}
 		})
 	}
@@ -334,7 +344,7 @@ func TestListOrders(t *testing.T) {
 	require.NoError(t, err)
 	
 	assert.NotNil(t, response["orders"])
-	assert.NotEmpty(t, response["correlation_id"])
+	assert.NotEmpty(t, correlationID, "Correlation ID should be present in response header")
 }
 
 // TestCorrelationIDPropagation tests that correlation IDs are properly propagated

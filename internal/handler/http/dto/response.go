@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/username/order-processor/internal/domain"
 )
 
 // OrderResponse represents a complete order in API responses
@@ -223,4 +224,36 @@ type HealthComponentStatus struct {
 	// Additional component details
 	// @Description Additional information about the component
 	Details map[string]interface{} `json:"details,omitempty"`
+}
+
+// FromDomainOrder converts a domain Order to OrderResponse
+func FromDomainOrder(order *domain.Order) OrderResponse {
+	items := make([]OrderItemResponse, 0, len(order.Items()))
+	for _, item := range order.Items() {
+		items = append(items, FromDomainOrderItem(item))
+	}
+
+	return OrderResponse{
+		ID:            order.ID(),
+		CustomerID:    order.CustomerID(),
+		CustomerEmail: order.CustomerEmail().String(),
+		TotalAmount:   order.TotalAmount().AmountInCents(),
+		Status:        string(order.Status()),
+		Items:         items,
+		CreatedAt:     order.CreatedAt(),
+		UpdatedAt:     order.UpdatedAt(),
+		ProcessedAt:   order.ProcessedAt(),
+	}
+}
+
+// FromDomainOrderItem converts a domain OrderItem to OrderItemResponse
+func FromDomainOrderItem(item *domain.OrderItem) OrderItemResponse {
+	return OrderItemResponse{
+		ID:          item.ID(),
+		ProductID:   item.ProductID(),
+		ProductName: item.ProductName(),
+		Quantity:    item.Quantity(),
+		UnitPrice:   item.UnitPrice().AmountInCents(),
+		TotalPrice:  item.TotalPrice().AmountInCents(),
+	}
 }

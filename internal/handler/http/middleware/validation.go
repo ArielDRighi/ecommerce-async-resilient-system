@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 
 	"github.com/username/order-processor/internal/handler/http/dto"
@@ -229,28 +230,10 @@ func getValidationErrorMessage(fieldErr validator.FieldError) string {
 	}
 }
 
-func isValidUUID(uuid string) bool {
-	// Basic UUID format validation (8-4-4-4-12 pattern)
-	if len(uuid) != 36 {
-		return false
-	}
-	
-	// Check hyphen positions
-	if uuid[8] != '-' || uuid[13] != '-' || uuid[18] != '-' || uuid[23] != '-' {
-		return false
-	}
-	
-	// Check that all other characters are hexadecimal
-	for i, r := range uuid {
-		if i == 8 || i == 13 || i == 18 || i == 23 {
-			continue // Skip hyphens
-		}
-		if !((r >= '0' && r <= '9') || (r >= 'a' && r <= 'f') || (r >= 'A' && r <= 'F')) {
-			return false
-		}
-	}
-	
-	return true
+func isValidUUID(uuidStr string) bool {
+	// Use standard library UUID parsing for RFC 4122 compliance
+	_, err := uuid.Parse(uuidStr)
+	return err == nil
 }
 
 // GetValidator extracts the validator from gin context

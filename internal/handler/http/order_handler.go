@@ -269,8 +269,9 @@ func (h *OrderHandler) convertCreateRequestToDomain(req dto.CreateOrderRequest) 
 			return nil, err
 		}
 		
-		// Create OrderItem using domain constructor
-		orderItem, err := domain.NewOrderItem(uuid.Nil, item.ProductID, item.ProductName, item.Quantity, unitPrice)
+		// Create OrderItem using domain constructor with new UUID
+		itemID := uuid.New()
+		orderItem, err := domain.NewOrderItem(itemID, item.ProductID, item.ProductName, item.Quantity, unitPrice)
 		if err != nil {
 			return nil, err
 		}

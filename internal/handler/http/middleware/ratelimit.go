@@ -223,7 +223,6 @@ func IdempotencyMiddleware(redisClient *redisClient.Client, ttl time.Duration) g
 		}
 		
 		logger := GetLogger(c)
-		_ = GetCorrelationID(c) // Get correlation ID for context but not used here
 		
 		// Get idempotency key from header
 		idempotencyKey := c.GetHeader("X-Idempotency-Key")
