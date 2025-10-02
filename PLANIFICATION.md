@@ -1391,6 +1391,315 @@ El sistema debe proporcionar visibilidad completa del estado de la aplicación e
 - Confirmar que correlation IDs se propaguen
 - Validar que alerting configuration sea funcional
 
+### FASE 7: Estandarización de Testing (Portfolio Consistency)
+
+#### Tarea 16: Estandarización de Testing según TESTING_STANDARDS.md
+
+**Objetivo:**
+
+Alinear completamente la estrategia, estructura y configuración de tests de este proyecto (E-commerce Async Resilient System) con los estándares establecidos en el Proyecto 1 (E-commerce Monolith Foundation) para mantener consistencia en el portfolio profesional.
+
+**Contexto:**
+
+Este proyecto es el segundo de una serie de 3 proyectos profesionales para portfolio. Se ha importado el documento `TESTING_STANDARDS.md` del Proyecto 1 como referencia definitiva para mantener calidad y consistencia en testing a través de todos los proyectos.
+
+**Estado Actual:**
+
+- ✅ 26 archivos de tests unitarios (`.spec.ts`) co-localizados
+- ✅ 1 test E2E básico (`app.e2e-spec.ts`)
+- ❌ Coverage bajo: 25% statements, 18% branches, 11% functions
+- ❌ Configuración Jest en `package.json` (debería estar en archivo separado)
+- ❌ Falta estructura organizada de tests E2E por categorías
+- ❌ Faltan helpers de testing y utilidades compartidas
+- ❌ Scripts NPM incompletos para testing
+- ❌ Thresholds de coverage muy bajos (deben ser 90%+ global)
+
+**Prompt para GitHub Copilot:**
+
+```
+Como experto en Testing con NestJS y Jest, implementa una estandarización completa de testing siguiendo TESTING_STANDARDS.md:
+
+**PARTE 1: Configuración y Estructura Base**
+
+1. Crear archivo `jest.config.js` separado para unit tests:
+   - Mover configuración desde package.json
+   - Configurar coverage thresholds: 90%+ global, 95%+ para módulos críticos
+   - Módulos críticos: auth, orders, payments, inventory, events
+   - Setup correcto de paths, transforms y collectCoverageFrom
+   - maxWorkers: '50%' para parallel execution
+
+2. Actualizar `test/jest-e2e.json` según estándar:
+   - Mover a `test/config/jest-e2e.json`
+   - testTimeout: 60000
+   - maxWorkers: 1
+   - forceExit: true, detectOpenHandles: true
+   - coverageDirectory: './coverage-e2e'
+
+3. Reorganizar estructura de directorios E2E:
+   - Crear subdirectorios en /test/e2e/:
+     * api/ (tests de endpoints individuales)
+     * business-flows/ (flujos completos de usuario)
+     * contracts/ (validación de contratos API)
+     * integration/ (tests de integración con DB real)
+     * performance/ (benchmarks de performance)
+     * smoke/ (health checks básicos, mover app.e2e-spec.ts aquí)
+     * snapshots/ (snapshot testing de respuestas)
+
+4. Crear archivos de configuración y helpers en /test/:
+   - config/
+     * setup.ts (setup global para unit tests)
+     * teardown.ts (cleanup global)
+     * jest-e2e.json (ya existe, actualizar)
+   - helpers/
+     * test-helpers.ts (funciones utilitarias compartidas)
+     * mock-data.ts (datos de prueba estandarizados)
+     * test-db.ts (helpers para manejo de BD de testing)
+
+5. Actualizar scripts NPM en package.json:
+   - test: "jest --config jest.config.js"
+   - test:watch: "jest --config jest.config.js --watch"
+   - test:cov: "jest --config jest.config.js --coverage"
+   - test:debug: "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand"
+   - test:e2e: "jest --config ./test/config/jest-e2e.json"
+   - test:e2e:watch: "jest --config ./test/config/jest-e2e.json --watch"
+   - test:e2e:cov: "jest --config ./test/config/jest-e2e.json --coverage"
+   - ci:pipeline: "npm run lint:check && npm run test:cov && npm run test:e2e"
+
+**PARTE 2: Helpers y Utilidades de Testing**
+
+6. Implementar test/helpers/test-db.ts:
+   - cleanupDatabase(): limpia todas las tablas respetando foreign keys
+   - createTestUser(): crea usuario de prueba con datos válidos
+   - createTestProduct(): crea producto de prueba
+   - createTestOrder(): crea orden de prueba completa
+   - setupTestDatabase(): inicializa BD de test
+   - teardownTestDatabase(): limpia y cierra conexiones
+
+7. Implementar test/helpers/mock-data.ts:
+   - mockUser: objeto User completo para tests
+   - mockProduct: objeto Product completo
+   - mockOrder: objeto Order con items
+   - mockInventory: datos de inventario
+   - mockPayment: datos de pago
+   - Factories para generar datos aleatorios pero válidos
+
+8. Implementar test/helpers/test-helpers.ts:
+   - createTestApp(): factory para crear app de testing
+   - getAuthToken(user): obtener JWT token para tests
+   - makeAuthenticatedRequest(app, method, url, data, token)
+   - waitForQueueJob(queueName, jobId): esperar por job asíncrono
+   - expectValidationError(response, field): validar errores de validación
+
+**PARTE 3: Tests E2E Categorizados**
+
+9. Crear tests E2E en test/e2e/smoke/:
+   - app.e2e-spec.ts (ya existe, mover aquí y mejorar)
+   - health.e2e-spec.ts (tests de health checks)
+
+10. Crear tests E2E en test/e2e/api/:
+    - auth.e2e-spec.ts (endpoints de autenticación)
+    - users.e2e-spec.ts (endpoints de usuarios)
+    - products.e2e-spec.ts (endpoints de productos)
+    - categories.e2e-spec.ts (endpoints de categorías)
+    - orders.e2e-spec.ts (endpoints de órdenes)
+    - inventory.e2e-spec.ts (endpoints de inventario)
+
+11. Crear tests E2E en test/e2e/business-flows/:
+    - complete-order-flow.e2e-spec.ts:
+      * Usuario se registra
+      * Busca productos
+      * Crea orden
+      * Procesa pago
+      * Recibe confirmación
+    - inventory-management-flow.e2e-spec.ts:
+      * Admin agrega producto
+      * Sistema reserva inventario
+      * Confirma o libera reserva
+      * Valida stock consistency
+
+12. Crear tests E2E en test/e2e/contracts/:
+    - api-contracts.e2e-spec.ts:
+      * Validar estructura de respuestas de todos los endpoints
+      * Verificar tipos de datos
+      * Validar headers de respuesta
+      * Confirmar error response structures
+
+13. Crear tests E2E en test/e2e/integration/:
+    - database-integration.e2e-spec.ts:
+      * Tests con BD real
+      * Validar transacciones
+      * Verificar constraints de BD
+      * Probar cascading deletes
+    - queue-integration.e2e-spec.ts:
+      * Tests de Bull queues
+      * Validar procesamiento asíncrono
+      * Verificar retry mechanisms
+      * Probar event publishing/handling
+
+14. Crear tests E2E en test/e2e/performance/:
+    - performance-benchmarks.e2e-spec.ts:
+      * Benchmarks de endpoints críticos
+      * Tiempo de respuesta < 200ms para GET
+      * Tiempo de respuesta < 500ms para POST
+      * Load testing básico
+
+15. Crear tests E2E en test/e2e/snapshots/:
+    - response-snapshots.e2e-spec.ts:
+      * Snapshot de respuestas de endpoints
+      * Detectar cambios no intencionales en API
+
+**PARTE 4: Refactorización de Tests Unitarios**
+
+16. Revisar y actualizar tests unitarios existentes:
+    - Aplicar patrón AAA (Arrange, Act, Assert) consistentemente
+    - Actualizar nombres a formato "should {action} when {condition}"
+    - Asegurar uso correcto de mocks
+    - Eliminar dependencias de BD en unit tests
+    - Agregar tests para casos edge y errores
+    - Mejorar cobertura a 90%+ en módulos críticos
+
+17. Crear tests faltantes para módulos sin coverage:
+    - Identificar módulos con coverage < 80%
+    - Crear tests unitarios completos
+    - Focus en: services, controllers, processors, handlers
+
+**PARTE 5: Documentación y Métricas**
+
+18. Crear documento PROJECT_TESTING_STRATEGY.md:
+    - Referencia a TESTING_STANDARDS.md como documento base
+    - Métricas actuales del proyecto
+    - Objetivos de coverage por módulo
+    - Tests implementados vs faltantes
+    - Guía de testing específica del proyecto
+    - Ejemplos de testing para patrones específicos:
+      * Testing de Saga Pattern
+      * Testing de Outbox Pattern
+      * Testing de Bull Queue processors
+      * Testing de Circuit Breakers
+
+**PARTE 6: CI/CD Integration**
+
+19. Actualizar GitHub Actions workflows:
+    - Asegurar que CI ejecute tests con coverage
+    - Quality gates: coverage > 90%
+    - Fallar build si tests no pasan
+    - Generar y almacenar coverage reports
+
+**Filosofía de Testing:**
+
+- **Unit Tests (70%)**: SIEMPRE usar mocks, nunca tocar BD real
+  * Rápidos (< 1 segundo por test)
+  * Aislados completamente
+  * Testean lógica específica
+
+- **E2E Tests (20%)**: Usar BD real de testing con cleanup
+  * Tests de flujos completos
+  * Validar integración de componentes
+  * Cleanup después de cada test (afterEach)
+
+- **Integration Tests (10%)**: BD real para validar integraciones complejas
+  * Transacciones de BD
+  * Event publishing/handling
+  * Queue processing
+
+**Coverage Targets:**
+
+- Global: 90%+ (statements, branches, functions, lines)
+- Módulos críticos: 95%+ (auth, orders, payments, inventory, events)
+- Módulos standard: 85%+ (products, users, notifications)
+
+**Validaciones de Calidad:**
+
+- ✅ npm run lint sin errores
+- ✅ npm run type-check sin errores
+- ✅ npm run test alcanza coverage targets
+- ✅ npm run test:e2e todos los tests pasan
+- ✅ npm run ci:pipeline completo exitoso
+- ✅ Documentación actualizada y completa
+- ✅ Tests organizados según estructura estándar
+- ✅ Helpers y utilities funcionando correctamente
+- ✅ Mock data consistente y reutilizable
+```
+
+**Entregables:**
+
+1. ✅ Archivo `jest.config.js` con configuración correcta
+2. ✅ Estructura de directorios E2E reorganizada
+3. ✅ Todos los archivos de helpers creados
+4. ✅ Scripts NPM actualizados
+5. ✅ Tests E2E categorizados creados (mínimo 50 tests E2E)
+6. ✅ Tests unitarios refactorizados (467+ tests)
+7. ✅ Coverage alcanzando 90%+ global
+8. ✅ Documentación PROJECT_TESTING_STRATEGY.md
+9. ✅ CI/CD pipeline actualizado
+10. ✅ Todos los tests pasando
+
+**Tests de validación final:**
+
+```bash
+# 1. Verificar estructura de directorios
+ls -la test/e2e/api/
+ls -la test/e2e/business-flows/
+ls -la test/config/
+ls -la test/helpers/
+
+# 2. Ejecutar tests unitarios con coverage
+npm run test:cov
+
+# Verificar output:
+# - Coverage: 90%+ global
+# - Módulos críticos: 95%+
+# - Todos los tests pasan
+
+# 3. Ejecutar tests E2E
+npm run test:e2e
+
+# Verificar output:
+# - Mínimo 50 tests E2E
+# - Todos pasan
+# - Tests organizados por categorías
+
+# 4. Ejecutar CI pipeline completo
+npm run ci:pipeline
+
+# Verificar:
+# - Linting pasa
+# - Type checking pasa
+# - Unit tests pasan con coverage
+# - E2E tests pasan
+
+# 5. Verificar configuración
+cat jest.config.js
+cat test/config/jest-e2e.json
+cat package.json | grep -A 10 "scripts"
+
+# 6. Validar documentación
+cat PROJECT_TESTING_STRATEGY.md
+
+# 7. Ejecutar test específico de un módulo crítico
+npm test -- auth.service.spec.ts --coverage
+
+# Verificar coverage > 95% en módulos críticos
+```
+
+**Métricas de Éxito:**
+
+- Coverage global: **de 25% → 90%+**
+- Tests unitarios: **de 26 → 467+**
+- Tests E2E: **de 1 → 50+**
+- Estructura organizada: **0 → 7 categorías E2E**
+- Helpers creados: **0 → 3 archivos**
+- Scripts NPM: **básicos → completos**
+- Documentación: **0 → 1 documento completo**
+
+**Impacto en Portfolio:**
+
+- ✅ Demuestra excelencia en testing
+- ✅ Muestra consistencia entre proyectos
+- ✅ Evidencia de mejores prácticas enterprise
+- ✅ Testing strategy profesional y escalable
+- ✅ Código maintainable y bien testeado
+
 ---
 
 ## 6. Consideraciones de Implementación
