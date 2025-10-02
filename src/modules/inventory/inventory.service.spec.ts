@@ -253,7 +253,7 @@ describe('InventoryService', () => {
     });
   });
 
-  // Note: Transaction-based methods (reserveStock, releaseReservation, fulfillReservation, 
+  // Note: Transaction-based methods (reserveStock, releaseReservation, fulfillReservation,
   // addStock, removeStock) are tested via E2E tests due to complex EntityManager mocking requirements
 
   describe('getInventoryList', () => {

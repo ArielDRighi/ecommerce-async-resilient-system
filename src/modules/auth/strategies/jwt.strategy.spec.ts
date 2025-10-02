@@ -112,9 +112,7 @@ describe('JwtStrategy', () => {
       const refreshPayload: JwtPayload = { ...validPayload, type: 'refresh' };
 
       // Act & Assert
-      await expect(strategy.validate(refreshPayload)).rejects.toThrow(
-        UnauthorizedException,
-      );
+      await expect(strategy.validate(refreshPayload)).rejects.toThrow(UnauthorizedException);
       await expect(strategy.validate(refreshPayload)).rejects.toThrow('Invalid token type');
       expect(usersService.findById).not.toHaveBeenCalled();
     });
@@ -124,9 +122,7 @@ describe('JwtStrategy', () => {
       usersService.findById.mockResolvedValue(null);
 
       // Act & Assert
-      await expect(strategy.validate(validPayload)).rejects.toThrow(
-        UnauthorizedException,
-      );
+      await expect(strategy.validate(validPayload)).rejects.toThrow(UnauthorizedException);
       await expect(strategy.validate(validPayload)).rejects.toThrow('User not found');
       expect(usersService.findById).toHaveBeenCalledWith(validPayload.sub);
     });
@@ -137,12 +133,8 @@ describe('JwtStrategy', () => {
       usersService.findById.mockResolvedValue(inactiveUser as User);
 
       // Act & Assert
-      await expect(strategy.validate(validPayload)).rejects.toThrow(
-        UnauthorizedException,
-      );
-      await expect(strategy.validate(validPayload)).rejects.toThrow(
-        'User account is disabled',
-      );
+      await expect(strategy.validate(validPayload)).rejects.toThrow(UnauthorizedException);
+      await expect(strategy.validate(validPayload)).rejects.toThrow('User account is disabled');
       expect(usersService.findById).toHaveBeenCalledWith(validPayload.sub);
     });
 
@@ -152,9 +144,7 @@ describe('JwtStrategy', () => {
       usersService.findById.mockResolvedValue(userWithDifferentEmail as User);
 
       // Act & Assert
-      await expect(strategy.validate(validPayload)).rejects.toThrow(
-        UnauthorizedException,
-      );
+      await expect(strategy.validate(validPayload)).rejects.toThrow(UnauthorizedException);
       await expect(strategy.validate(validPayload)).rejects.toThrow('Token email mismatch');
       expect(usersService.findById).toHaveBeenCalledWith(validPayload.sub);
     });

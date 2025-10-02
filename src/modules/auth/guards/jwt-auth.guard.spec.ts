@@ -149,10 +149,7 @@ describe('JwtAuthGuard', () => {
       guard.canActivate(mockContext);
 
       // Assert
-      expect(reflector.getAllAndOverride).toHaveBeenCalledWith(
-        'isPublic',
-        expect.any(Array),
-      );
+      expect(reflector.getAllAndOverride).toHaveBeenCalledWith('isPublic', expect.any(Array));
     });
   });
 });
