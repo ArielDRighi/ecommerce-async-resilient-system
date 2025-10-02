@@ -15,8 +15,11 @@ describe('AppController', () => {
   });
 
   describe('root', () => {
-    it('should return application info', () => {
+    it('should return application info when root endpoint called', () => {
+      // Arrange & Act
       const result = appController.getHello();
+
+      // Assert
       expect(result).toHaveProperty('name');
       expect(result).toHaveProperty('version');
       expect(result).toHaveProperty('description');

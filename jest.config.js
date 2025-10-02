@@ -48,31 +48,31 @@ module.exports = {
       statements: 90,
     },
     // Critical modules require 95%+ coverage
-    './modules/auth/**/*.ts': {
+    '**/src/modules/auth/**/*.ts': {
       branches: 95,
       functions: 95,
       lines: 95,
       statements: 95,
     },
-    './modules/orders/**/*.ts': {
+    '**/src/modules/orders/**/*.ts': {
       branches: 95,
       functions: 95,
       lines: 95,
       statements: 95,
     },
-    './modules/payments/**/*.ts': {
+    '**/src/modules/payments/**/*.ts': {
       branches: 95,
       functions: 95,
       lines: 95,
       statements: 95,
     },
-    './modules/inventory/**/*.ts': {
+    '**/src/modules/inventory/**/*.ts': {
       branches: 95,
       functions: 95,
       lines: 95,
       statements: 95,
     },
-    './modules/events/**/*.ts': {
+    '**/src/modules/events/**/*.ts': {
       branches: 95,
       functions: 95,
       lines: 95,

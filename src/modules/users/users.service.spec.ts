@@ -77,13 +77,16 @@ describe('UsersService', () => {
       lastName: 'Doe',
     };
 
-    it('should create a user successfully', async () => {
+    it('should create user and return saved entity when valid data provided', async () => {
+      // Arrange
       repository.findOne.mockResolvedValue(null);
       repository.create.mockReturnValue(mockUser);
       repository.save.mockResolvedValue(mockUser);
 
+      // Act
       const result = await service.create(createUserDto);
 
+      // Assert
       expect(result).toBe(mockUser);
       expect(repository.findOne).toHaveBeenCalledWith({
         where: { email: createUserDto.email },
@@ -92,76 +95,98 @@ describe('UsersService', () => {
       expect(repository.save).toHaveBeenCalledWith(mockUser);
     });
 
-    it('should throw ConflictException if user already exists', async () => {
+    it('should throw ConflictException when user already exists', async () => {
+      // Arrange
       repository.findOne.mockResolvedValue(mockUser);
 
+      // Act & Assert
       await expect(service.create(createUserDto)).rejects.toThrow(ConflictException);
     });
   });
 
   describe('findByEmail', () => {
-    it('should find user by email', async () => {
+    it('should return user when valid email provided', async () => {
+      // Arrange
       repository.findOne.mockResolvedValue(mockUser);
 
+      // Act
       const result = await service.findByEmail('test@example.com');
 
+      // Assert
       expect(result).toBe(mockUser);
       expect(repository.findOne).toHaveBeenCalledWith({
         where: { email: 'test@example.com' },
       });
     });
 
-    it('should return null if user not found', async () => {
+    it('should return null when user not found', async () => {
+      // Arrange
       repository.findOne.mockResolvedValue(null);
 
+      // Act
       const result = await service.findByEmail('nonexistent@example.com');
 
+      // Assert
       expect(result).toBeNull();
     });
   });
 
   describe('findById', () => {
-    it('should find user by id', async () => {
+    it('should return user when valid ID provided', async () => {
+      // Arrange
       repository.findOne.mockResolvedValue(mockUser);
 
+      // Act
       const result = await service.findById('123e4567-e89b-12d3-a456-426614174000');
 
+      // Assert
       expect(result).toBe(mockUser);
     });
 
-    it('should return null if user not found', async () => {
+    it('should return null when user not found', async () => {
+      // Arrange
       repository.findOne.mockResolvedValue(null);
 
+      // Act
       const result = await service.findById('nonexistent-id');
 
+      // Assert
       expect(result).toBeNull();
     });
   });
 
   describe('findOne', () => {
-    it('should return user response DTO', async () => {
+    it('should return user response DTO when user exists', async () => {
+      // Arrange
       repository.findOne.mockResolvedValue(mockUser);
 
+      // Act
       const result = await service.findOne('123e4567-e89b-12d3-a456-426614174000');
 
+      // Assert
       expect(result).toBeDefined();
       expect(result.id).toBe(mockUser.id);
       expect(result.email).toBe(mockUser.email);
     });
 
-    it('should throw NotFoundException if user not found', async () => {
+    it('should throw NotFoundException when user not found', async () => {
+      // Arrange
       repository.findOne.mockResolvedValue(null);
 
+      // Act & Assert
       await expect(service.findOne('nonexistent-id')).rejects.toThrow(NotFoundException);
     });
   });
 
   describe('updateLastLogin', () => {
-    it('should update last login timestamp', async () => {
+    it('should update last login timestamp when valid user ID provided', async () => {
+      // Arrange
       repository.update.mockResolvedValue({ affected: 1, raw: {}, generatedMaps: [] });
 
+      // Act
       await service.updateLastLogin('123e4567-e89b-12d3-a456-426614174000');
 
+      // Assert
       expect(repository.update).toHaveBeenCalledWith('123e4567-e89b-12d3-a456-426614174000', {
         lastLoginAt: expect.any(Date),
       });

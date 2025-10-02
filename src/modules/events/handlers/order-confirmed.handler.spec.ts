@@ -14,23 +14,36 @@ describe('OrderConfirmedHandler', () => {
   });
 
   describe('eventType', () => {
-    it('should return OrderConfirmed', () => {
-      expect(handler.eventType).toBe('OrderConfirmed');
+    it('should return OrderConfirmed when accessed', () => {
+      // Arrange & Act
+      const result = handler.eventType;
+
+      // Assert
+      expect(result).toBe('OrderConfirmed');
     });
   });
 
   describe('canHandle', () => {
-    it('should handle OrderConfirmed events', () => {
-      expect(handler.canHandle('OrderConfirmed')).toBe(true);
+    it('should return true when OrderConfirmed event provided', () => {
+      // Arrange & Act
+      const result = handler.canHandle('OrderConfirmed');
+
+      // Assert
+      expect(result).toBe(true);
     });
 
-    it('should not handle other events', () => {
-      expect(handler.canHandle('OrderCreated')).toBe(false);
+    it('should return false when other event type provided', () => {
+      // Arrange & Act
+      const result = handler.canHandle('OrderCreated');
+
+      // Assert
+      expect(result).toBe(false);
     });
   });
 
   describe('handle', () => {
-    it('should process OrderConfirmed event', async () => {
+    it('should process event successfully when valid OrderConfirmed event provided', async () => {
+      // Arrange
       const event: OrderConfirmedEvent = {
         eventId: 'evt-456',
         eventType: 'OrderConfirmed',
@@ -44,10 +57,12 @@ describe('OrderConfirmedHandler', () => {
         confirmedAt: new Date(),
       };
 
+      // Act & Assert
       await expect(handler.handle(event)).resolves.toBeUndefined();
     });
 
-    it('should handle event with correlation data', async () => {
+    it('should handle event successfully when correlation data provided', async () => {
+      // Arrange
       const event: OrderConfirmedEvent = {
         eventId: 'evt-457',
         eventType: 'OrderConfirmed',
@@ -63,6 +78,7 @@ describe('OrderConfirmedHandler', () => {
         confirmedAt: new Date(),
       };
 
+      // Act & Assert
       await expect(handler.handle(event)).resolves.toBeUndefined();
     });
   });

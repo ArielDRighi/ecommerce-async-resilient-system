@@ -79,6 +79,17 @@ describe('ProductsService', () => {
   };
 
   beforeEach(async () => {
+    // Re-setup mock chain after clearAllMocks()
+    mockQueryBuilder.where.mockReturnValue(mockQueryBuilder);
+    mockQueryBuilder.andWhere.mockReturnValue(mockQueryBuilder);
+    mockQueryBuilder.orderBy.mockReturnValue(mockQueryBuilder);
+    mockQueryBuilder.addOrderBy.mockReturnValue(mockQueryBuilder);
+    mockQueryBuilder.addSelect.mockReturnValue(mockQueryBuilder);
+    mockQueryBuilder.skip.mockReturnValue(mockQueryBuilder);
+    mockQueryBuilder.take.mockReturnValue(mockQueryBuilder);
+    mockQueryBuilder.limit.mockReturnValue(mockQueryBuilder);
+    mockRepository.createQueryBuilder.mockReturnValue(mockQueryBuilder);
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ProductsService,
@@ -90,9 +101,6 @@ describe('ProductsService', () => {
     }).compile();
 
     service = module.get<ProductsService>(ProductsService);
-
-    // Setup default mock behavior
-    mockRepository.createQueryBuilder.mockReturnValue(mockQueryBuilder);
   });
 
   afterEach(() => {
@@ -112,17 +120,17 @@ describe('ProductsService', () => {
       brand: 'TestBrand',
     };
 
-    it('should create a product successfully', async () => {
-      // Mock SKU doesn't exist
-      mockQueryBuilder.getOne.mockResolvedValueOnce(null);
-
-      // Mock successful creation and save
+    it('should create product and return saved entity when valid data provided', async () => {
+      // Arrange
       const newProduct = { ...mockProduct, ...createProductDto };
+      mockQueryBuilder.getOne.mockResolvedValueOnce(null);
       mockRepository.create.mockReturnValue(newProduct);
       mockRepository.save.mockResolvedValue(newProduct);
 
+      // Act
       const result = await service.create(createProductDto);
 
+      // Assert
       expect(result).toBeDefined();
       expect(result.name).toBe(createProductDto.name);
       expect(result.sku).toBe(createProductDto.sku);
@@ -130,20 +138,22 @@ describe('ProductsService', () => {
       expect(mockRepository.save).toHaveBeenCalledWith(newProduct);
     });
 
-    it('should throw ConflictException if SKU already exists', async () => {
-      mockQueryBuilder.getOne.mockResolvedValueOnce(mockProduct); // SKU exists
+    it('should throw ConflictException when SKU already exists', async () => {
+      // Arrange
+      mockQueryBuilder.getOne.mockResolvedValueOnce(mockProduct);
 
+      // Act & Assert
       await expect(service.create(createProductDto)).rejects.toThrow(ConflictException);
     });
 
-    it('should throw BadRequestException on validation error', async () => {
+    it('should throw BadRequestException when validation error occurs', async () => {
+      // Arrange
       const invalidDto = { ...createProductDto, price: -10 };
       mockQueryBuilder.getOne.mockResolvedValueOnce(null);
-
-      // Mock save to throw validation error
       mockRepository.create.mockReturnValue({ ...mockProduct, price: -10 });
       mockRepository.save.mockRejectedValue(new Error('Product price must be greater than 0'));
 
+      // Act & Assert
       await expect(service.create(invalidDto)).rejects.toThrow(BadRequestException);
     });
   });
@@ -155,15 +165,17 @@ describe('ProductsService', () => {
       search: 'test',
     };
 
-    it('should return paginated products', async () => {
+    it('should return paginated results when valid query provided', async () => {
+      // Arrange
       const products = [mockProduct];
       const total = 1;
-
       mockQueryBuilder.getCount.mockResolvedValue(total);
       mockQueryBuilder.getMany.mockResolvedValue(products);
 
+      // Act
       const result = await service.findAll(queryDto);
 
+      // Assert
       expect(result).toEqual({
         data: expect.any(Array),
         meta: {
@@ -177,12 +189,15 @@ describe('ProductsService', () => {
       });
     });
 
-    it('should apply search filters correctly', async () => {
+    it('should apply search filters when search term provided', async () => {
+      // Arrange
       mockQueryBuilder.getCount.mockResolvedValue(0);
       mockQueryBuilder.getMany.mockResolvedValue([]);
 
+      // Act
       await service.findAll(queryDto);
 
+      // Assert
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
         expect.stringContaining('ILIKE'),
         expect.any(Object),
@@ -193,20 +208,26 @@ describe('ProductsService', () => {
   describe('findById', () => {
     const productId = '123e4567-e89b-12d3-a456-426614174000';
 
-    it('should return a product by ID', async () => {
+    it('should return product when valid ID provided', async () => {
+      // Arrange
       mockQueryBuilder.getOne.mockResolvedValue(mockProduct);
 
+      // Act
       const result = await service.findById(productId);
 
+      // Assert
       expect(result).toEqual(mockProduct);
       expect(mockQueryBuilder.where).toHaveBeenCalledWith('product.id = :id', { id: productId });
     });
 
-    it('should return null if product not found', async () => {
+    it('should return null when product not found', async () => {
+      // Arrange
       mockQueryBuilder.getOne.mockResolvedValue(null);
 
+      // Act
       const result = await service.findById(productId);
 
+      // Assert
       expect(result).toBeNull();
     });
   });
@@ -214,18 +235,23 @@ describe('ProductsService', () => {
   describe('findOne', () => {
     const productId = '123e4567-e89b-12d3-a456-426614174000';
 
-    it('should return a product response DTO', async () => {
+    it('should return product response DTO when product exists', async () => {
+      // Arrange
       mockQueryBuilder.getOne.mockResolvedValue(mockProduct);
 
+      // Act
       const result = await service.findOne(productId);
 
+      // Assert
       expect(result).toBeDefined();
       expect(result.id).toEqual(mockProduct.id);
     });
 
-    it('should throw NotFoundException if product not found', async () => {
+    it('should throw NotFoundException when product not found', async () => {
+      // Arrange
       mockQueryBuilder.getOne.mockResolvedValue(null);
 
+      // Act & Assert
       await expect(service.findOne(productId)).rejects.toThrow(NotFoundException);
     });
   });
@@ -234,12 +260,15 @@ describe('ProductsService', () => {
     const searchTerm = 'wireless';
     const limit = 10;
 
-    it('should return search results', async () => {
+    it('should return search results when search term provided', async () => {
+      // Arrange
       const products = [mockProduct];
       mockQueryBuilder.getMany.mockResolvedValue(products);
 
+      // Act
       const result = await service.search(searchTerm, limit);
 
+      // Assert
       expect(result).toBeDefined();
       expect(Array.isArray(result)).toBe(true);
       expect(mockQueryBuilder.limit).toHaveBeenCalledWith(limit);
@@ -253,47 +282,51 @@ describe('ProductsService', () => {
       description: 'Updated Description', // Don't update price to avoid validation issues
     };
 
-    it('should update a product successfully', async () => {
+    it('should update product and return updated entity when valid data provided', async () => {
+      // Arrange
       const existingProduct = { ...mockProduct };
       const updatedProduct = { ...mockProduct, ...updateDto, updatedAt: new Date() };
-
       mockQueryBuilder.getOne
-        .mockResolvedValueOnce(existingProduct) // findById call
-        .mockResolvedValueOnce(updatedProduct); // updated product fetch
-
+        .mockResolvedValueOnce(existingProduct)
+        .mockResolvedValueOnce(updatedProduct);
       mockRepository.update.mockResolvedValue({ affected: 1 });
 
+      // Act
       const result = await service.update(productId, updateDto);
 
+      // Assert
       expect(result).toBeDefined();
       expect(result.name).toBe('Updated Product');
       expect(result.description).toBe('Updated Description');
     });
 
-    it('should throw NotFoundException if product not found', async () => {
-      // Mock findById to return null (product not found)
+    it('should throw NotFoundException when product not found', async () => {
+      // Arrange
       mockQueryBuilder.getOne.mockResolvedValue(null);
 
+      // Act & Assert
       await expect(service.update(productId, updateDto)).rejects.toThrow(NotFoundException);
-
-      // Verify that update was not called
       expect(mockRepository.update).not.toHaveBeenCalled();
     });
   });
   describe('remove', () => {
     const productId = '123e4567-e89b-12d3-a456-426614174000';
 
-    it('should soft delete a product successfully', async () => {
+    it('should soft delete product when valid ID provided', async () => {
+      // Arrange
       mockQueryBuilder.getOne.mockResolvedValue(mockProduct);
       mockRepository.softDelete.mockResolvedValue({ affected: 1 });
 
+      // Act & Assert
       await expect(service.remove(productId)).resolves.not.toThrow();
       expect(mockRepository.softDelete).toHaveBeenCalledWith(productId);
     });
 
-    it('should throw NotFoundException if product not found', async () => {
+    it('should throw NotFoundException when product not found', async () => {
+      // Arrange
       mockQueryBuilder.getOne.mockResolvedValue(null);
 
+      // Act & Assert
       await expect(service.remove(productId)).rejects.toThrow(NotFoundException);
     });
   });
@@ -301,14 +334,17 @@ describe('ProductsService', () => {
   describe('activate', () => {
     const productId = '123e4567-e89b-12d3-a456-426614174000';
 
-    it('should activate a product successfully', async () => {
+    it('should activate product when valid ID provided', async () => {
+      // Arrange
       mockQueryBuilder.getOne
-        .mockResolvedValueOnce(mockProduct) // findById call
-        .mockResolvedValueOnce({ ...mockProduct, isActive: true }); // activated product
+        .mockResolvedValueOnce(mockProduct)
+        .mockResolvedValueOnce({ ...mockProduct, isActive: true });
       mockRepository.update.mockResolvedValue({ affected: 1 });
 
+      // Act
       const result = await service.activate(productId);
 
+      // Assert
       expect(result).toBeDefined();
       expect(mockRepository.update).toHaveBeenCalledWith(productId, { isActive: true });
     });
@@ -317,14 +353,17 @@ describe('ProductsService', () => {
   describe('deactivate', () => {
     const productId = '123e4567-e89b-12d3-a456-426614174000';
 
-    it('should deactivate a product successfully', async () => {
+    it('should deactivate product when valid ID provided', async () => {
+      // Arrange
       mockQueryBuilder.getOne
-        .mockResolvedValueOnce(mockProduct) // findById call
-        .mockResolvedValueOnce({ ...mockProduct, isActive: false }); // deactivated product
+        .mockResolvedValueOnce(mockProduct)
+        .mockResolvedValueOnce({ ...mockProduct, isActive: false });
       mockRepository.update.mockResolvedValue({ affected: 1 });
 
+      // Act
       const result = await service.deactivate(productId);
 
+      // Assert
       expect(result).toBeDefined();
       expect(mockRepository.update).toHaveBeenCalledWith(productId, { isActive: false });
     });
@@ -333,22 +372,28 @@ describe('ProductsService', () => {
   describe('findBySku', () => {
     const sku = 'TEST-001';
 
-    it('should return a product by SKU', async () => {
+    it('should return product when valid SKU provided', async () => {
+      // Arrange
       mockQueryBuilder.getOne.mockResolvedValue(mockProduct);
 
+      // Act
       const result = await service.findBySku(sku);
 
+      // Assert
       expect(result).toEqual(mockProduct);
       expect(mockQueryBuilder.where).toHaveBeenCalledWith('product.sku = :sku', {
         sku: sku.toUpperCase(),
       });
     });
 
-    it('should return null if product not found', async () => {
+    it('should return null when product not found', async () => {
+      // Arrange
       mockQueryBuilder.getOne.mockResolvedValue(null);
 
+      // Act
       const result = await service.findBySku(sku);
 
+      // Assert
       expect(result).toBeNull();
     });
   });

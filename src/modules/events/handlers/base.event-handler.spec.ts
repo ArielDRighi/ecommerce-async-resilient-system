@@ -23,17 +23,26 @@ describe('BaseEventHandler', () => {
   });
 
   describe('canHandle', () => {
-    it('should return true for matching event type', () => {
-      expect(handler.canHandle('TestEvent')).toBe(true);
+    it('should return true when event type matches', () => {
+      // Arrange & Act
+      const result = handler.canHandle('TestEvent');
+
+      // Assert
+      expect(result).toBe(true);
     });
 
-    it('should return false for non-matching event type', () => {
-      expect(handler.canHandle('OtherEvent')).toBe(false);
+    it('should return false when event type does not match', () => {
+      // Arrange & Act
+      const result = handler.canHandle('OtherEvent');
+
+      // Assert
+      expect(result).toBe(false);
     });
   });
 
   describe('execute', () => {
-    it('should execute handler successfully and log', async () => {
+    it('should execute handler successfully when valid event provided', async () => {
+      // Arrange
       const event: DomainEvent = {
         eventId: 'test-1',
         eventType: 'TestEvent',
@@ -44,10 +53,12 @@ describe('BaseEventHandler', () => {
         userId: 'user-1',
       };
 
+      // Act & Assert
       await expect(handler.execute(event)).resolves.toBeUndefined();
     });
 
-    it('should handle errors and rethrow', async () => {
+    it('should handle errors and rethrow when handler fails', async () => {
+      // Arrange
       const event: DomainEvent = {
         eventId: 'test-2',
         eventType: 'TestEvent',
@@ -58,13 +69,18 @@ describe('BaseEventHandler', () => {
         userId: 'user-1',
       };
 
+      // Act & Assert
       await expect(handler.execute(event)).rejects.toThrow('Test error');
     });
   });
 
   describe('eventType getter', () => {
-    it('should return correct event type', () => {
-      expect(handler.eventType).toBe('TestEvent');
+    it('should return correct event type when accessed', () => {
+      // Arrange & Act
+      const result = handler.eventType;
+
+      // Assert
+      expect(result).toBe('TestEvent');
     });
   });
 });

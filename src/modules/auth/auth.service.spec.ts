@@ -109,26 +109,54 @@ describe('AuthService', () => {
       lastName: 'Doe',
     };
 
-    it('should register a new user successfully', async () => {
+    it('should register new user and return tokens when valid data provided', async () => {
+      // Arrange
       usersService.findByEmail.mockResolvedValue(null);
       usersService.create.mockResolvedValue(mockUser);
       usersService.updateLastLogin.mockResolvedValue(undefined);
-      jwtService.signAsync.mockResolvedValue('mock-token');
+      jwtService.signAsync.mockResolvedValue('mock-access-token');
 
+      // Act
       const result = await service.register(registerDto);
 
+      // Assert
       expect(result).toBeDefined();
-      expect(result.accessToken).toBe('mock-token');
-      expect(result.refreshToken).toBe('mock-token');
+      expect(result.accessToken).toBe('mock-access-token');
+      expect(result.refreshToken).toBe('mock-access-token');
       expect(result.user.email).toBe(mockUser.email);
+      expect(result.user.id).toBe(mockUser.id);
       expect(usersService.findByEmail).toHaveBeenCalledWith(registerDto.email);
-      expect(usersService.create).toHaveBeenCalled();
+      expect(usersService.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          email: registerDto.email,
+          firstName: registerDto.firstName,
+          lastName: registerDto.lastName,
+        }),
+      );
     });
 
-    it('should throw ConflictException if user already exists', async () => {
+    it('should throw ConflictException when user email already exists', async () => {
+      // Arrange
       usersService.findByEmail.mockResolvedValue(mockUser);
 
+      // Act & Assert
       await expect(service.register(registerDto)).rejects.toThrow(ConflictException);
+      expect(usersService.create).not.toHaveBeenCalled();
+    });
+
+    it('should accept email as provided and process registration', async () => {
+      // Arrange
+      const emailWithUpperCase = { ...registerDto, email: 'Test@Example.COM' };
+      usersService.findByEmail.mockResolvedValue(null);
+      usersService.create.mockResolvedValue(mockUser);
+      jwtService.signAsync.mockResolvedValue('mock-token');
+
+      // Act
+      await service.register(emailWithUpperCase);
+
+      // Assert
+      expect(usersService.findByEmail).toHaveBeenCalledWith(emailWithUpperCase.email);
+      expect(usersService.create).toHaveBeenCalled();
     });
   });
 
@@ -138,55 +166,121 @@ describe('AuthService', () => {
       password: 'StrongPassword123!',
     };
 
-    it('should login user successfully', async () => {
+    it('should return tokens and user when valid credentials provided', async () => {
+      // Arrange
+      mockUser.validatePassword = jest.fn().mockResolvedValue(true);
+      usersService.findByEmail.mockResolvedValue(mockUser);
+      usersService.updateLastLogin.mockResolvedValue(undefined);
+      jwtService.signAsync.mockResolvedValue('mock-access-token');
+
+      // Act
+      const result = await service.login(loginDto);
+
+      // Assert
+      expect(result).toBeDefined();
+      expect(result.accessToken).toBe('mock-access-token');
+      expect(result.refreshToken).toBe('mock-access-token');
+      expect(result.user.email).toBe(mockUser.email);
+      expect(result.user.id).toBe(mockUser.id);
+      expect(usersService.updateLastLogin).toHaveBeenCalledWith(mockUser.id);
+    });
+
+    it('should throw UnauthorizedException when user does not exist', async () => {
+      // Arrange
+      usersService.findByEmail.mockResolvedValue(null);
+
+      // Act & Assert
+      await expect(service.login(loginDto)).rejects.toThrow(UnauthorizedException);
+      expect(usersService.updateLastLogin).not.toHaveBeenCalled();
+    });
+
+    it('should throw UnauthorizedException when user account is inactive', async () => {
+      // Arrange
+      const inactiveUser = { ...mockUser, isActive: false };
+      usersService.findByEmail.mockResolvedValue(inactiveUser as User);
+
+      // Act & Assert
+      await expect(service.login(loginDto)).rejects.toThrow(UnauthorizedException);
+      expect(usersService.updateLastLogin).not.toHaveBeenCalled();
+    });
+
+    it('should throw UnauthorizedException when password is incorrect', async () => {
+      // Arrange
+      mockUser.validatePassword = jest.fn().mockResolvedValue(false);
+      usersService.findByEmail.mockResolvedValue(mockUser);
+
+      // Act & Assert
+      await expect(service.login(loginDto)).rejects.toThrow(UnauthorizedException);
+      expect(usersService.updateLastLogin).not.toHaveBeenCalled();
+    });
+
+    it('should update last login timestamp on successful login', async () => {
+      // Arrange
       mockUser.validatePassword = jest.fn().mockResolvedValue(true);
       usersService.findByEmail.mockResolvedValue(mockUser);
       usersService.updateLastLogin.mockResolvedValue(undefined);
       jwtService.signAsync.mockResolvedValue('mock-token');
 
-      const result = await service.login(loginDto);
+      // Act
+      await service.login(loginDto);
 
-      expect(result).toBeDefined();
-      expect(result.accessToken).toBe('mock-token');
-      expect(result.user.email).toBe(mockUser.email);
-    });
-
-    it('should throw UnauthorizedException for invalid credentials', async () => {
-      usersService.findByEmail.mockResolvedValue(null);
-
-      await expect(service.login(loginDto)).rejects.toThrow(UnauthorizedException);
-    });
-
-    it('should throw UnauthorizedException for inactive user', async () => {
-      const inactiveUser = { ...mockUser, isActive: false };
-      usersService.findByEmail.mockResolvedValue(inactiveUser as User);
-
-      await expect(service.login(loginDto)).rejects.toThrow(UnauthorizedException);
-    });
-
-    it('should throw UnauthorizedException for wrong password', async () => {
-      mockUser.validatePassword = jest.fn().mockResolvedValue(false);
-      usersService.findByEmail.mockResolvedValue(mockUser);
-
-      await expect(service.login(loginDto)).rejects.toThrow(UnauthorizedException);
+      // Assert
+      expect(usersService.updateLastLogin).toHaveBeenCalledTimes(1);
+      expect(usersService.updateLastLogin).toHaveBeenCalledWith(mockUser.id);
     });
   });
 
   describe('validateUser', () => {
-    it('should return user for valid credentials', async () => {
+    it('should return user when credentials are valid', async () => {
+      // Arrange
       mockUser.validatePassword = jest.fn().mockResolvedValue(true);
       usersService.findByEmail.mockResolvedValue(mockUser);
 
-      const result = await service.validateUser('test@example.com', 'password');
+      // Act
+      const result = await service.validateUser('test@example.com', 'ValidPassword123!');
 
+      // Assert
       expect(result).toBe(mockUser);
+      expect(result).not.toBeNull();
+      if (result) {
+        expect(result.id).toBe(mockUser.id);
+        expect(result.email).toBe(mockUser.email);
+      }
     });
 
-    it('should return null for invalid credentials', async () => {
+    it('should return null when user does not exist', async () => {
+      // Arrange
       usersService.findByEmail.mockResolvedValue(null);
 
-      const result = await service.validateUser('test@example.com', 'password');
+      // Act
+      const result = await service.validateUser('nonexistent@example.com', 'password');
 
+      // Assert
+      expect(result).toBeNull();
+    });
+
+    it('should return null when password is incorrect', async () => {
+      // Arrange
+      mockUser.validatePassword = jest.fn().mockResolvedValue(false);
+      usersService.findByEmail.mockResolvedValue(mockUser);
+
+      // Act
+      const result = await service.validateUser('test@example.com', 'WrongPassword123!');
+
+      // Assert
+      expect(result).toBeNull();
+    });
+
+    it('should return null when user is inactive', async () => {
+      // Arrange
+      const inactiveUser = { ...mockUser, isActive: false };
+      mockUser.validatePassword = jest.fn().mockResolvedValue(true);
+      usersService.findByEmail.mockResolvedValue(inactiveUser as User);
+
+      // Act
+      const result = await service.validateUser('test@example.com', 'ValidPassword123!');
+
+      // Assert
       expect(result).toBeNull();
     });
   });
