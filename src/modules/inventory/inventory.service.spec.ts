@@ -210,12 +210,15 @@ describe('InventoryService', () => {
   });
 
   describe('getInventoryByProduct', () => {
-    it('should return inventory response for existing product', async () => {
+    it('should return inventory response when product exists', async () => {
+      // Arrange
       inventoryRepository.findOne.mockResolvedValue(mockInventory);
       movementRepository.count.mockResolvedValue(5);
 
+      // Act
       const result = await service.getInventoryByProduct(mockInventory.productId);
 
+      // Assert
       expect(result).toEqual({
         id: mockInventory.id,
         productId: mockInventory.productId,
@@ -240,11 +243,88 @@ describe('InventoryService', () => {
     });
 
     it('should throw NotFoundException when inventory not found', async () => {
+      // Arrange
       inventoryRepository.findOne.mockResolvedValue(null);
 
+      // Act & Assert
       await expect(service.getInventoryByProduct('non-existent-id')).rejects.toThrow(
         NotFoundException,
       );
+    });
+  });
+
+  // Note: Transaction-based methods (reserveStock, releaseReservation, fulfillReservation, 
+  // addStock, removeStock) are tested via E2E tests due to complex EntityManager mocking requirements
+
+  describe('getInventoryList', () => {
+    it('should return paginated inventory list when valid params provided', async () => {
+      // Arrange
+      const params = {
+        page: 1,
+        limit: 10,
+        location: 'MAIN_WAREHOUSE',
+      };
+
+      const mockQueryBuilder = {
+        leftJoinAndSelect: jest.fn().mockReturnThis(),
+        leftJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
+        take: jest.fn().mockReturnThis(),
+        offset: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue([mockInventory]),
+        getManyAndCount: jest.fn().mockResolvedValue([[mockInventory], 1]),
+      } as unknown as SelectQueryBuilder<Inventory>;
+
+      inventoryRepository.createQueryBuilder.mockReturnValue(mockQueryBuilder);
+      inventoryRepository.count.mockResolvedValue(1);
+      movementRepository.count.mockResolvedValue(5);
+
+      // Act
+      const result = await service.getInventoryList(params);
+
+      // Assert
+      expect(result).toBeDefined();
+      expect(result.data).toHaveLength(1);
+      expect(result.meta).toHaveProperty('currentPage', 1);
+      expect(result.meta).toHaveProperty('itemsPerPage', 10);
+      expect(result.meta).toHaveProperty('totalItems', 1);
+      expect(result.meta).toHaveProperty('totalPages', 1);
+    });
+
+    it('should apply status filter when provided', async () => {
+      // Arrange
+      const params = {
+        page: 1,
+        limit: 10,
+        status: 'LOW_STOCK',
+      };
+
+      const mockQueryBuilder = {
+        leftJoinAndSelect: jest.fn().mockReturnThis(),
+        leftJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
+        take: jest.fn().mockReturnThis(),
+        offset: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue([]),
+        getManyAndCount: jest.fn().mockResolvedValue([[], 0]),
+      } as unknown as SelectQueryBuilder<Inventory>;
+
+      inventoryRepository.createQueryBuilder.mockReturnValue(mockQueryBuilder);
+      inventoryRepository.count.mockResolvedValue(0);
+
+      // Act
+      await service.getInventoryList(params);
+
+      // Assert
+      expect(mockQueryBuilder.andWhere).toHaveBeenCalled();
     });
   });
 });
