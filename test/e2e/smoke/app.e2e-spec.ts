@@ -4,11 +4,11 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { TerminusModule } from '@nestjs/terminus';
 import request from 'supertest';
-import { AppController } from '../../src/app.controller';
-import { AppService } from '../../src/app.service';
-import { HealthController } from '../../src/health/health.controller';
-import { HealthService } from '../../src/health/health.service';
-import { TestHealthService } from './test-health.service';
+import { AppController } from '../../../src/app.controller';
+import { AppService } from '../../../src/app.service';
+import { HealthController } from '../../../src/health/health.controller';
+import { HealthService } from '../../../src/health/health.service';
+import { TestHealthService } from '../../helpers/test-health.service';
 
 interface TestResponse {
   body: Record<string, unknown>;

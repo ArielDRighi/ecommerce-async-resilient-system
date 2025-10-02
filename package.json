@@ -15,12 +15,15 @@
     "start:prod": "node dist/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\"",
     "lint:fix": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
+    "lint:check": "eslint \"{src,apps,libs,test}/**/*.ts\"",
     "type-check": "tsc --noEmit",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:cov": "jest --coverage",
-    "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "test": "jest --config jest.config.js",
+    "test:watch": "jest --config jest.config.js --watch",
+    "test:cov": "jest --config jest.config.js --coverage",
+    "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --config jest.config.js --runInBand",
+    "test:e2e": "jest --config ./test/config/jest-e2e.json",
+    "test:e2e:watch": "jest --config ./test/config/jest-e2e.json --watch",
+    "test:e2e:cov": "jest --config ./test/config/jest-e2e.json --coverage",
     "migration:generate": "typeorm-ts-node-commonjs migration:generate -d src/config/typeorm.config.ts",
     "migration:run": "typeorm-ts-node-commonjs migration:run -d src/config/typeorm.config.ts",
     "migration:revert": "typeorm-ts-node-commonjs migration:revert -d src/config/typeorm.config.ts",
@@ -46,6 +49,7 @@
     "ci:build": "npm run build",
     "ci:security": "npm audit --audit-level=high",
     "ci:all": "npm run ci:lint && npm run ci:format:check && npm run ci:type-check && npm run ci:test && npm run ci:build",
+    "ci:pipeline": "npm run lint:check && npm run test:cov && npm run test:e2e",
     "deploy:staging": "bash ./scripts/deploy-staging.sh",
     "deploy:production": "bash ./scripts/deploy-production.sh",
     "rollback": "bash ./scripts/rollback.sh",
@@ -129,34 +133,6 @@
       "eslint --fix",
       "prettier --write"
     ]
-  },
-  "jest": {
-    "moduleFileExtensions": [
-      "js",
-      "json",
-      "ts"
-    ],
-    "rootDir": "src",
-    "testRegex": ".*\\.spec\\.ts$",
-    "transform": {
-      "^.+\\.(t|j)s$": "ts-jest"
-    },
-    "collectCoverageFrom": [
-      "**/*.(t|j)s"
-    ],
-    "coverageDirectory": "../coverage",
-    "testEnvironment": "node",
-    "coverageThreshold": {
-      "global": {
-        "branches": 18,
-        "functions": 11,
-        "lines": 25,
-        "statements": 25
-      }
-    },
-    "moduleNameMapper": {
-      "^@/(.*)$": "<rootDir>/$1"
-    }
   },
   "keywords": [
     "nestjs",
