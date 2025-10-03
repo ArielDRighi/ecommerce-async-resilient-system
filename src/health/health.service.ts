@@ -22,10 +22,16 @@ export class HealthService {
 
   @HealthCheck()
   check() {
-    // Use higher thresholds in test environment to avoid false positives during E2E tests
-    const isTest = process.env['NODE_ENV'] === 'test';
-    const heapThreshold = isTest ? 1024 * 1024 * 1024 : 150 * 1024 * 1024; // 1GB in test, 150MB in prod
-    const rssThreshold = isTest ? 1536 * 1024 * 1024 : 300 * 1024 * 1024; // 1.5GB in test, 300MB in prod
+    // Use higher thresholds in test environment
+    const heapThreshold =
+      process.env['NODE_ENV'] === 'test'
+        ? 500 * 1024 * 1024 // 500MB for tests
+        : 150 * 1024 * 1024; // 150MB for production
+
+    const rssThreshold =
+      process.env['NODE_ENV'] === 'test'
+        ? 600 * 1024 * 1024 // 600MB for tests
+        : 300 * 1024 * 1024; // 300MB for production
 
     return this.health.check([
       // Database health check
@@ -34,7 +40,7 @@ export class HealthService {
       // Memory health check - should not exceed threshold
       () => this.memory.checkHeap('memory_heap', heapThreshold),
 
-      // Memory health check - should not exceed threshold RSS
+      // Memory health check - RSS threshold
       () => this.memory.checkRSS('memory_rss', rssThreshold),
 
       // Disk health check - should have at least 250GB free
@@ -57,21 +63,29 @@ export class HealthService {
   @HealthCheck()
   checkLiveness() {
     // Use higher threshold in test environment
-    const isTest = process.env['NODE_ENV'] === 'test';
-    const heapThreshold = isTest ? 1024 * 1024 * 1024 : 200 * 1024 * 1024; // 1GB in test, 200MB in prod
+    const memoryThreshold =
+      process.env['NODE_ENV'] === 'test'
+        ? 500 * 1024 * 1024 // 500MB for tests
+        : 200 * 1024 * 1024; // 200MB for production
 
     return this.health.check([
       // Basic checks for liveness
-      () => this.memory.checkHeap('memory_heap', heapThreshold),
+      () => this.memory.checkHeap('memory_heap', memoryThreshold),
     ]);
   }
 
   @HealthCheck()
   checkDetailed() {
     // Use higher thresholds in test environment
-    const isTest = process.env['NODE_ENV'] === 'test';
-    const heapThreshold = isTest ? 1024 * 1024 * 1024 : 150 * 1024 * 1024; // 1GB in test, 150MB in prod
-    const rssThreshold = isTest ? 1536 * 1024 * 1024 : 300 * 1024 * 1024; // 1.5GB in test, 300MB in prod
+    const heapThreshold =
+      process.env['NODE_ENV'] === 'test'
+        ? 500 * 1024 * 1024 // 500MB for tests
+        : 150 * 1024 * 1024; // 150MB for production
+
+    const rssThreshold =
+      process.env['NODE_ENV'] === 'test'
+        ? 600 * 1024 * 1024 // 600MB for tests
+        : 300 * 1024 * 1024; // 300MB for production
 
     return this.health.check([
       // Database checks

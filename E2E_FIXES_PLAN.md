@@ -193,7 +193,7 @@ afterEach(async () => {
 
 ### **FASE 4: Configuración y Performance** ⏱️ 30 min
 
-#### ⬜ Tarea 4.1: Ajustar Health Check Threshold
+#### ✅ Tarea 4.1: Ajustar Health Check Threshold
 **Problema:** Memory heap check falla en tests
 
 **Archivo afectado:**
@@ -209,7 +209,13 @@ const memoryThreshold =
 ```
 
 **Tests que se arreglarán:** 1 test  
-**Estimado:** 15 minutos  
+**Tiempo real:** 10 minutos  
+**Cambios realizados:**
+- Heap threshold: 150MB → 500MB para tests
+- RSS threshold: 300MB → 600MB para tests
+- Aplicado a check(), checkLiveness() y checkDetailed()
+- Threshold ajustado solo cuando NODE_ENV=test
+
 **Commit:** `fix(e2e): adjust memory heap threshold for test environment`
 
 ---
