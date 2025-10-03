@@ -7,11 +7,11 @@ export interface HttpExceptionResponse {
   statusCode: number;
   message: string | string[];
   error: string;
+  success: boolean;
   timestamp: string;
   path: string;
   method: string;
   correlationId?: string;
-  success: boolean;
 }
 
 @Catch()
@@ -84,11 +84,11 @@ export class AllExceptionsFilter implements ExceptionFilter {
       statusCode: status,
       message: errorMessage,
       error: HttpStatus[status],
+      success: false,
       timestamp: new Date().toISOString(),
       path: request.url,
       method: request.method,
       correlationId: request.correlationId,
-      success: false,
     };
 
     // Remove correlationId from response in production if not set
