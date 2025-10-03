@@ -30,6 +30,26 @@ describe('Database Integration (E2E)', () => {
     }
   });
 
+  afterEach(async () => {
+    // Clean up test data after each test
+    try {
+      // Delete test data in correct order (respecting foreign keys)
+      await dataSource.query('DELETE FROM orders WHERE id LIKE $1', ['00000000%']);
+      await dataSource.query('DELETE FROM products WHERE id LIKE $1', ['00000000%']);
+      await dataSource.query('DELETE FROM users WHERE id LIKE $1 OR id LIKE $2 OR id LIKE $3', [
+        '00000000%',
+        'concurrent-user%',
+        'batch-user%',
+      ]);
+    } catch (error) {
+      // Ignore cleanup errors
+      if (error instanceof Error) {
+        // eslint-disable-next-line no-console
+        console.log('Cleanup warning:', error.message);
+      }
+    }
+  });
+
   describe('Database Connection', () => {
     it('should establish database connection', async () => {
       expect(dataSource).toBeDefined();
@@ -61,7 +81,7 @@ describe('Database Integration (E2E)', () => {
 
       try {
         await queryRunner.manager.query(
-          `INSERT INTO users (id, email, password, firstName, lastName) VALUES (?, ?, ?, ?, ?)`,
+          `INSERT INTO users (id, email, password, "firstName", "lastName") VALUES ($1, $2, $3, $4, $5)`,
           [
             '00000000-0000-0000-0000-000000000001',
             generateTestEmail(),
@@ -73,7 +93,7 @@ describe('Database Integration (E2E)', () => {
 
         await queryRunner.commitTransaction();
 
-        const user = await queryRunner.manager.query('SELECT * FROM users WHERE id = ?', [
+        const user = await queryRunner.manager.query('SELECT * FROM users WHERE id = $1', [
           '00000000-0000-0000-0000-000000000001',
         ]);
 
@@ -91,7 +111,7 @@ describe('Database Integration (E2E)', () => {
 
       try {
         await queryRunner.manager.query(
-          `INSERT INTO users (id, email, password, firstName, lastName) VALUES (?, ?, ?, ?, ?)`,
+          `INSERT INTO users (id, email, password, "firstName", "lastName") VALUES ($1, $2, $3, $4, $5)`,
           [
             '00000000-0000-0000-0000-000000000002',
             generateTestEmail(),
@@ -110,7 +130,7 @@ describe('Database Integration (E2E)', () => {
       }
 
       // Verify rollback
-      const user = await dataSource.query('SELECT * FROM users WHERE id = ?', [
+      const user = await dataSource.query('SELECT * FROM users WHERE id = $1', [
         '00000000-0000-0000-0000-000000000002',
       ]);
 
@@ -125,7 +145,7 @@ describe('Database Integration (E2E)', () => {
         await queryRunner.startTransaction();
 
         await queryRunner.manager.query(
-          `INSERT INTO users (id, email, password, firstName, lastName) VALUES (?, ?, ?, ?, ?)`,
+          `INSERT INTO users (id, email, password, "firstName", "lastName") VALUES ($1, $2, $3, $4, $5)`,
           [
             '00000000-0000-0000-0000-000000000003',
             generateTestEmail(),
@@ -139,7 +159,7 @@ describe('Database Integration (E2E)', () => {
         await queryRunner.manager.query('SAVEPOINT nested_txn');
 
         await queryRunner.manager.query(
-          `INSERT INTO products (id, name, description, price, sku) VALUES (?, ?, ?, ?, ?)`,
+          `INSERT INTO products (id, name, description, price, sku) VALUES ($1, $2, $3, $4, $5)`,
           [
             '00000000-0000-0000-0000-000000000004',
             'Test Product',
@@ -155,13 +175,13 @@ describe('Database Integration (E2E)', () => {
         await queryRunner.commitTransaction();
 
         // User should exist
-        const user = await dataSource.query('SELECT * FROM users WHERE id = ?', [
+        const user = await dataSource.query('SELECT * FROM users WHERE id = $1', [
           '00000000-0000-0000-0000-000000000003',
         ]);
         expect(user.length).toBe(1);
 
         // Product should not exist (rolled back)
-        const product = await dataSource.query('SELECT * FROM products WHERE id = ?', [
+        const product = await dataSource.query('SELECT * FROM products WHERE id = $1', [
           '00000000-0000-0000-0000-000000000004',
         ]);
         expect(product.length).toBe(0);
@@ -176,7 +196,7 @@ describe('Database Integration (E2E)', () => {
       // Try to insert order with non-existent user
       await expect(
         dataSource.query(
-          `INSERT INTO orders (id, userId, status, totalAmount) VALUES (?, ?, ?, ?)`,
+          `INSERT INTO orders (id, "userId", status, "totalAmount") VALUES ($1, $2, $3, $4)`,
           ['00000000-0000-0000-0000-000000000005', 'non-existent-user-id', 'PENDING', 100],
         ),
       ).rejects.toThrow();
@@ -186,14 +206,14 @@ describe('Database Integration (E2E)', () => {
       const email = generateTestEmail();
 
       await dataSource.query(
-        `INSERT INTO users (id, email, password, firstName, lastName) VALUES (?, ?, ?, ?, ?)`,
+        `INSERT INTO users (id, email, password, "firstName", "lastName") VALUES ($1, $2, $3, $4, $5)`,
         ['00000000-0000-0000-0000-000000000006', email, 'hashedpassword', 'Unique', 'User'],
       );
 
       // Try to insert duplicate email
       await expect(
         dataSource.query(
-          `INSERT INTO users (id, email, password, firstName, lastName) VALUES (?, ?, ?, ?, ?)`,
+          `INSERT INTO users (id, email, password, "firstName", "lastName") VALUES ($1, $2, $3, $4, $5)`,
           ['00000000-0000-0000-0000-000000000007', email, 'hashedpassword', 'Duplicate', 'User'],
         ),
       ).rejects.toThrow();
@@ -205,20 +225,20 @@ describe('Database Integration (E2E)', () => {
       const orderId = '00000000-0000-0000-0000-000000000009';
 
       await dataSource.query(
-        `INSERT INTO users (id, email, password, firstName, lastName) VALUES (?, ?, ?, ?, ?)`,
+        `INSERT INTO users (id, email, password, "firstName", "lastName") VALUES ($1, $2, $3, $4, $5)`,
         [userId, generateTestEmail(), 'hashedpassword', 'Cascade', 'User'],
       );
 
       await dataSource.query(
-        `INSERT INTO orders (id, userId, status, totalAmount) VALUES (?, ?, ?, ?)`,
+        `INSERT INTO orders (id, "userId", status, "totalAmount") VALUES ($1, $2, $3, $4)`,
         [orderId, userId, 'PENDING', 100],
       );
 
       // Delete user (should cascade to orders if configured)
-      await dataSource.query('DELETE FROM users WHERE id = ?', [userId]);
+      await dataSource.query('DELETE FROM users WHERE id = $1', [userId]);
 
       // Verify order handling (depends on cascade configuration)
-      const orders = await dataSource.query('SELECT * FROM orders WHERE id = ?', [orderId]);
+      const orders = await dataSource.query('SELECT * FROM orders WHERE id = $1', [orderId]);
 
       // If cascade delete is configured, order should be deleted
       // If not, this test documents the behavior
@@ -230,14 +250,14 @@ describe('Database Integration (E2E)', () => {
     it('should handle multiple concurrent queries', async () => {
       const promises = Array.from({ length: 10 }, (_, i) =>
         dataSource.query(
-          `INSERT INTO users (id, email, password, firstName, lastName) VALUES (?, ?, ?, ?, ?)`,
+          `INSERT INTO users (id, email, password, "firstName", "lastName") VALUES ($1, $2, $3, $4, $5)`,
           [`concurrent-user-${i}`, generateTestEmail(), 'hashedpassword', 'Concurrent', `User${i}`],
         ),
       );
 
       await expect(Promise.all(promises)).resolves.toBeDefined();
 
-      const users = await dataSource.query(`SELECT * FROM users WHERE firstName = 'Concurrent'`);
+      const users = await dataSource.query(`SELECT * FROM users WHERE "firstName" = 'Concurrent'`);
       expect(users.length).toBe(10);
     });
   });
@@ -264,7 +284,7 @@ describe('Database Integration (E2E)', () => {
       );
 
       await dataSource.query(
-        `INSERT INTO users (id, email, password, firstName, lastName) VALUES ${values.join(', ')}`,
+        `INSERT INTO users (id, email, password, "firstName", "lastName") VALUES ${values.join(', ')}`,
       );
 
       const executionTime = Date.now() - startTime;
@@ -272,7 +292,7 @@ describe('Database Integration (E2E)', () => {
       // Batch insert should complete in less than 500ms
       expect(executionTime).toBeLessThan(500);
 
-      const users = await dataSource.query(`SELECT * FROM users WHERE firstName = 'Batch'`);
+      const users = await dataSource.query(`SELECT * FROM users WHERE "firstName" = 'Batch'`);
       expect(users.length).toBe(100);
     });
   });
