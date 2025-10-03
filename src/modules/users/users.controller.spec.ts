@@ -2,11 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import {
-  CreateUserDto,
-  UpdateUserDto,
-  UserQueryDto,
-} from './dto';
+import { CreateUserDto, UpdateUserDto, UserQueryDto } from './dto';
 import { User } from './entities/user.entity';
 
 describe('UsersController', () => {
@@ -91,7 +87,7 @@ describe('UsersController', () => {
         lastName: 'Smith',
       };
       const createdUser = { ...mockUser, id: 'new-user-id', email: createDto.email };
-      
+
       service.create.mockResolvedValue(createdUser as User);
       service.findOne.mockResolvedValue({
         ...mockUserResponse,
@@ -120,7 +116,7 @@ describe('UsersController', () => {
         firstName: 'Admin',
         lastName: 'User',
       };
-      
+
       service.create.mockResolvedValue(mockUser as User);
       service.findOne.mockResolvedValue(mockUserResponse);
 

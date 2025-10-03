@@ -508,7 +508,7 @@ describe('AuthService', () => {
         emailVerifiedAt: undefined,
         validatePassword: jest.fn().mockResolvedValue(true),
       } as unknown as User;
-      
+
       usersService.findByEmail.mockResolvedValue(userWithNullFields);
       usersService.updateLastLogin.mockResolvedValue(undefined);
       jwtService.signAsync.mockResolvedValue('token');

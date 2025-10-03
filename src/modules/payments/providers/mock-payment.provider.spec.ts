@@ -138,7 +138,7 @@ describe('MockPaymentProvider', () => {
 
       if (successfulPayment && successfulPayment.status === PaymentStatus.SUCCEEDED) {
         // Act - try to process payment again with same idempotency key
-        const duplicateResult = await provider
+        await provider
           .processPayment({
             ...validPaymentDto,
             idempotencyKey: successfulPayment.paymentId, // Use payment ID from successful payment

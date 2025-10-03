@@ -258,9 +258,9 @@ describe('UsersService', () => {
       repository.findOne.mockResolvedValue(null);
 
       // Act & Assert
-      await expect(
-        service.update('nonexistent-id', { firstName: 'Test' }),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.update('nonexistent-id', { firstName: 'Test' })).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should handle dateOfBirth conversion', async () => {
@@ -321,9 +321,7 @@ describe('UsersService', () => {
       const inactiveUser = { ...mockUser, isActive: false } as User;
       const activatedUser = { ...mockUser, isActive: true } as User;
 
-      repository.findOne
-        .mockResolvedValueOnce(inactiveUser)
-        .mockResolvedValueOnce(activatedUser);
+      repository.findOne.mockResolvedValueOnce(inactiveUser).mockResolvedValueOnce(activatedUser);
       repository.update.mockResolvedValue({ affected: 1, raw: {}, generatedMaps: [] });
 
       // Act
@@ -357,7 +355,9 @@ describe('UsersService', () => {
         getMany: jest.fn().mockResolvedValue([mockUser]),
       };
 
-      repository.createQueryBuilder.mockReturnValue(mockQueryBuilder as unknown as ReturnType<typeof repository.createQueryBuilder>);
+      repository.createQueryBuilder.mockReturnValue(
+        mockQueryBuilder as unknown as ReturnType<typeof repository.createQueryBuilder>,
+      );
 
       // Act
       const result = await service.findAll({ page: 1, limit: 10 });
@@ -383,7 +383,9 @@ describe('UsersService', () => {
         getMany: jest.fn().mockResolvedValue([mockUser]),
       };
 
-      repository.createQueryBuilder.mockReturnValue(mockQueryBuilder as unknown as ReturnType<typeof repository.createQueryBuilder>);
+      repository.createQueryBuilder.mockReturnValue(
+        mockQueryBuilder as unknown as ReturnType<typeof repository.createQueryBuilder>,
+      );
 
       // Act
       await service.findAll({ page: 1, limit: 10, search: 'john' });
@@ -406,7 +408,9 @@ describe('UsersService', () => {
         getMany: jest.fn().mockResolvedValue([mockUser]),
       };
 
-      repository.createQueryBuilder.mockReturnValue(mockQueryBuilder as unknown as ReturnType<typeof repository.createQueryBuilder>);
+      repository.createQueryBuilder.mockReturnValue(
+        mockQueryBuilder as unknown as ReturnType<typeof repository.createQueryBuilder>,
+      );
 
       // Act
       await service.findAll({ page: 1, limit: 10, status: 'active' });
@@ -428,7 +432,9 @@ describe('UsersService', () => {
         getMany: jest.fn().mockResolvedValue([mockUser]),
       };
 
-      repository.createQueryBuilder.mockReturnValue(mockQueryBuilder as unknown as ReturnType<typeof repository.createQueryBuilder>);
+      repository.createQueryBuilder.mockReturnValue(
+        mockQueryBuilder as unknown as ReturnType<typeof repository.createQueryBuilder>,
+      );
 
       // Act
       await service.findAll({ page: 1, limit: 10, status: 'inactive' });
@@ -450,7 +456,9 @@ describe('UsersService', () => {
         getMany: jest.fn().mockResolvedValue([mockUser]),
       };
 
-      repository.createQueryBuilder.mockReturnValue(mockQueryBuilder as unknown as ReturnType<typeof repository.createQueryBuilder>);
+      repository.createQueryBuilder.mockReturnValue(
+        mockQueryBuilder as unknown as ReturnType<typeof repository.createQueryBuilder>,
+      );
 
       // Act
       await service.findAll({ page: 1, limit: 10, sortBy: 'firstName', sortOrder: 'ASC' });
@@ -470,7 +478,9 @@ describe('UsersService', () => {
         getMany: jest.fn().mockResolvedValue([mockUser]),
       };
 
-      repository.createQueryBuilder.mockReturnValue(mockQueryBuilder as unknown as ReturnType<typeof repository.createQueryBuilder>);
+      repository.createQueryBuilder.mockReturnValue(
+        mockQueryBuilder as unknown as ReturnType<typeof repository.createQueryBuilder>,
+      );
 
       // Act
       const result = await service.findAll({ page: 2, limit: 10 });

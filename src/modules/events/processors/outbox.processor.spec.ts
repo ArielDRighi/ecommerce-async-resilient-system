@@ -162,7 +162,7 @@ describe('OutboxProcessor', () => {
           processedAt: expect.any(Date),
         }),
       );
-      
+
       // Should NOT add to queue
       expect(mockQueue.add).not.toHaveBeenCalled();
     });
@@ -340,7 +340,7 @@ describe('OutboxProcessor', () => {
       ];
 
       mockOutboxRepository.find.mockResolvedValue(events);
-      
+
       // First event succeeds, second fails
       mockQueue.add
         .mockResolvedValueOnce({} as unknown)
@@ -874,7 +874,11 @@ describe('OutboxProcessor', () => {
       await processor.processPendingEvents();
 
       // Should be enqueued with lowercase event type as job name
-      expect(mockQueue.add).toHaveBeenCalledWith('unknowninventoryevent', expect.any(Object), expect.any(Object));
+      expect(mockQueue.add).toHaveBeenCalledWith(
+        'unknowninventoryevent',
+        expect.any(Object),
+        expect.any(Object),
+      );
     });
   });
 });
