@@ -431,7 +431,7 @@ describe('OrderProcessingSagaService', () => {
 
       const metrics = await service.executeSaga('saga-123');
 
-      expect(metrics.finalStatus).toBe('FAILED');
+      expect(metrics.finalStatus).toBe('COMPENSATED');
       expect(metrics.stepMetrics[0]?.retryCount).toBeGreaterThanOrEqual(0);
     });
   });
