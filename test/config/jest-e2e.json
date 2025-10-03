@@ -1,43 +1,25 @@
 {
-  "displayName": "E2E Tests",
-  "preset": "ts-jest",
-  "testEnvironment": "node",
-
   "moduleFileExtensions": ["js", "json", "ts"],
-  "rootDir": "../..",
-
-  "testRegex": "test/e2e/.*\\.e2e-spec\\.ts$",
-  "testPathIgnorePatterns": ["/node_modules/", "/dist/", "/src/"],
-
+  "rootDir": "../",
+  "testEnvironment": "node",
+  "testRegex": ".e2e-spec.ts$",
   "transform": {
     "^.+\\.(t|j)s$": "ts-jest"
   },
-
   "moduleNameMapper": {
-    "^@/(.*)$": "<rootDir>/src/$1"
+    "^src/(.*)$": "<rootDir>/../src/$1"
   },
-
-  "setupFilesAfterEnv": ["<rootDir>/test/config/setup-e2e.ts"],
-
-  "testTimeout": 60000,
-  "maxWorkers": 1,
-  "forceExit": true,
-  "detectOpenHandles": true,
-
   "collectCoverageFrom": [
     "src/**/*.ts",
     "!src/**/*.spec.ts",
-    "!src/**/*.test.ts",
-    "!src/**/*.d.ts",
     "!src/**/*.interface.ts",
     "!src/**/*.dto.ts",
-    "!src/**/*.entity.ts",
-    "!src/**/*.enum.ts",
-    "!src/main.ts",
-    "!src/test/**"
+    "!src/main.ts"
   ],
-  "coverageDirectory": "./coverage-e2e",
-  "coverageReporters": ["text", "text-summary", "lcov", "html"],
-
-  "verbose": true
+  "coverageDirectory": "../coverage-e2e",
+  "testTimeout": 30000,
+  "maxWorkers": 1,
+  "globalSetup": "<rootDir>/config/setup-e2e.ts",
+  "globalTeardown": "<rootDir>/config/teardown-e2e.ts",
+  "setupFilesAfterEnv": ["<rootDir>/config/setup-after-env.ts"]
 }

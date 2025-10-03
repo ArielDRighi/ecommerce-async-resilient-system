@@ -24,6 +24,11 @@ export class ResponseInterceptor<T> implements NestInterceptor<T, ResponseFormat
     const request = context.switchToHttp().getRequest();
     const statusCode = context.switchToHttp().getResponse().statusCode;
 
+    // Skip health check endpoints - they have their own format from @nestjs/terminus
+    if (request.url.startsWith('/health')) {
+      return next.handle();
+    }
+
     return next.handle().pipe(
       timeout(30000), // 30 seconds timeout
       map((data) => ({
