@@ -369,7 +369,10 @@ describe('Authentication (E2E)', () => {
     });
 
     it('should fail without refresh token', async () => {
-      const response = await request(app.getHttpServer()).post('/auth/refresh').send({}).expect(400);
+      const response = await request(app.getHttpServer())
+        .post('/auth/refresh')
+        .send({})
+        .expect(400);
 
       expect(response.body).toHaveProperty('success', false);
       expect(response.body).toHaveProperty('statusCode', 400);

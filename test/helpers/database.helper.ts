@@ -27,7 +27,15 @@ export class DatabaseHelper {
       // Limpiar tablas en orden inverso a las dependencias
       await queryRunner.query('DELETE FROM "order_items" WHERE 1=1;');
       await queryRunner.query('DELETE FROM "orders" WHERE 1=1;');
-      await queryRunner.query('DELETE FROM "stock_movements" WHERE 1=1;');
+
+      // Solo eliminar stock_movements si existe la tabla
+      const stockMovementsExists = await queryRunner.query(
+        `SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'stock_movements');`,
+      );
+      if (stockMovementsExists[0].exists) {
+        await queryRunner.query('DELETE FROM "stock_movements" WHERE 1=1;');
+      }
+
       await queryRunner.query('DELETE FROM "inventory" WHERE 1=1;');
       await queryRunner.query('DELETE FROM "products" WHERE 1=1;');
       await queryRunner.query('DELETE FROM "categories" WHERE 1=1;');
