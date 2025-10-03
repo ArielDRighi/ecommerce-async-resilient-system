@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ConflictException, NotFoundException } from '@nestjs/common';
+import { ConflictException, NotFoundException, BadRequestException } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto';
@@ -102,6 +102,17 @@ describe('UsersService', () => {
       // Act & Assert
       await expect(service.create(createUserDto)).rejects.toThrow(ConflictException);
     });
+
+    it('should throw BadRequestException when database error occurs during create', async () => {
+      // Arrange
+      repository.findOne.mockResolvedValue(null);
+      repository.create.mockReturnValue(mockUser);
+      repository.save.mockRejectedValue(new Error('Database error'));
+
+      // Act & Assert
+      await expect(service.create(createUserDto)).rejects.toThrow(BadRequestException);
+      await expect(service.create(createUserDto)).rejects.toThrow('Failed to create user');
+    });
   });
 
   describe('findByEmail', () => {
@@ -149,6 +160,17 @@ describe('UsersService', () => {
 
       // Act
       const result = await service.findById('nonexistent-id');
+
+      // Assert
+      expect(result).toBeNull();
+    });
+
+    it('should return null when database error occurs during findById', async () => {
+      // Arrange
+      repository.findOne.mockRejectedValue(new Error('Database connection error'));
+
+      // Act
+      const result = await service.findById('123e4567-e89b-12d3-a456-426614174000');
 
       // Assert
       expect(result).toBeNull();
@@ -288,6 +310,27 @@ describe('UsersService', () => {
         }),
       );
     });
+
+    it('should throw NotFoundException when user is not found before update', async () => {
+      // Arrange
+      const updateDto = { firstName: 'Jane' };
+      repository.findOne.mockResolvedValue(null);
+
+      // Act & Assert
+      await expect(service.update('123e4567-e89b-12d3-a456-426614174000', updateDto)).rejects.toThrow(NotFoundException);
+      await expect(service.update('123e4567-e89b-12d3-a456-426614174000', updateDto)).rejects.toThrow('User with ID 123e4567-e89b-12d3-a456-426614174000 not found');
+    });
+
+    it('should throw BadRequestException when database error occurs during update', async () => {
+      // Arrange
+      const updateDto = { firstName: 'Jane' };
+      repository.findOne.mockResolvedValue(mockUser);
+      repository.update.mockRejectedValue(new Error('Database error'));
+
+      // Act & Assert
+      await expect(service.update('123e4567-e89b-12d3-a456-426614174000', updateDto)).rejects.toThrow(BadRequestException);
+      await expect(service.update('123e4567-e89b-12d3-a456-426614174000', updateDto)).rejects.toThrow('Failed to update user');
+    });
   });
 
   describe('remove', () => {
@@ -312,6 +355,16 @@ describe('UsersService', () => {
       // Act & Assert
       await expect(service.remove('nonexistent-id')).rejects.toThrow(NotFoundException);
       expect(repository.update).not.toHaveBeenCalled();
+    });
+
+    it('should throw BadRequestException when database error occurs during remove', async () => {
+      // Arrange
+      repository.findOne.mockResolvedValue(mockUser);
+      repository.update.mockRejectedValue(new Error('Database error'));
+
+      // Act & Assert
+      await expect(service.remove('123e4567-e89b-12d3-a456-426614174000')).rejects.toThrow(BadRequestException);
+      await expect(service.remove('123e4567-e89b-12d3-a456-426614174000')).rejects.toThrow('Failed to delete user');
     });
   });
 
@@ -340,6 +393,25 @@ describe('UsersService', () => {
 
       // Act & Assert
       await expect(service.activate('nonexistent-id')).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw NotFoundException when user is not found before activation', async () => {
+      // Arrange
+      repository.findOne.mockResolvedValue(null);
+
+      // Act & Assert
+      await expect(service.activate('123e4567-e89b-12d3-a456-426614174000')).rejects.toThrow(NotFoundException);
+      await expect(service.activate('123e4567-e89b-12d3-a456-426614174000')).rejects.toThrow('User with ID 123e4567-e89b-12d3-a456-426614174000 not found');
+    });
+
+    it('should throw BadRequestException when database error occurs during activation', async () => {
+      // Arrange
+      repository.findOne.mockResolvedValue(mockUser);
+      repository.update.mockRejectedValue(new Error('Database error'));
+
+      // Act & Assert
+      await expect(service.activate('123e4567-e89b-12d3-a456-426614174000')).rejects.toThrow(BadRequestException);
+      await expect(service.activate('123e4567-e89b-12d3-a456-426614174000')).rejects.toThrow('Failed to activate user');
     });
   });
 
@@ -491,6 +563,26 @@ describe('UsersService', () => {
       expect(result.meta.hasPrev).toBe(true);
       expect(mockQueryBuilder.skip).toHaveBeenCalledWith(10);
       expect(mockQueryBuilder.take).toHaveBeenCalledWith(10);
+    });
+
+    it('should throw BadRequestException when database error occurs during findAll', async () => {
+      // Arrange
+      const mockQueryBuilder = {
+        andWhere: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
+        take: jest.fn().mockReturnThis(),
+        getCount: jest.fn().mockRejectedValue(new Error('Database connection error')),
+        getMany: jest.fn().mockResolvedValue([]),
+      };
+
+      repository.createQueryBuilder.mockReturnValue(
+        mockQueryBuilder as unknown as ReturnType<typeof repository.createQueryBuilder>,
+      );
+
+      // Act & Assert
+      await expect(service.findAll({ page: 1, limit: 10 })).rejects.toThrow(BadRequestException);
+      await expect(service.findAll({ page: 1, limit: 10 })).rejects.toThrow('Failed to fetch users');
     });
   });
 });
