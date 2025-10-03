@@ -3,7 +3,9 @@
 **Fecha de inicio:** 3 de Octubre, 2025  
 **Objetivo:** Arreglar todos los tests E2E para alcanzar >90% de tests pasando  
 **Estado actual:** 60/136 tests pasando (44%)  
-**Estado objetivo:** >120/136 tests pasando (>90%)
+**Estado objetivo:** >120/136 tests pasando (>#### 🔴 PENDIENTE:
+- [x] Tarea 1.1: response-snapshots.e2e-spec.ts ✅
+- [x] Tarea 1.2: queue-integration.e2e-spec.ts ✅
 
 ---
 
@@ -58,13 +60,13 @@ uctsModule,  // ❌ Falta "Prod" al inicio → ProductsModule
 
 ---
 
-#### ⬜ Tarea 1.2: Arreglar queue-integration.e2e-spec.ts
+#### ✅ Tarea 1.2: Arreglar queue-integration.e2e-spec.ts
 **Problema:** Busca cola `email-notifications` que no existe
 
 **Archivo afectado:**
 - `test/e2e/integration/queue-integration.e2e-spec.ts`
 
-**Cambios necesarios:**
+**Cambios realizados:**
 ```typescript
 // ANTES:
 emailQueue = app.get(getQueueToken('email-notifications'));
@@ -80,7 +82,7 @@ notificationQueue = app.get(getQueueToken('notification-sending'));
 - ✅ `notification-sending`
 
 **Tests que se arreglarán:** 19 tests  
-**Estimado:** 10 minutos  
+**Tiempo real:** 8 minutos  
 **Commit:** `fix(e2e): use correct notification queue name in integration tests`
 
 ---

@@ -13,7 +13,7 @@ import { sleep } from '../../helpers/test-helpers';
 describe('Queue Integration (E2E)', () => {
   let app: INestApplication;
   let orderQueue: Queue;
-  let emailQueue: Queue;
+  let notificationQueue: Queue;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -24,7 +24,7 @@ describe('Queue Integration (E2E)', () => {
     await app.init();
 
     orderQueue = app.get(getQueueToken('order-processing'));
-    emailQueue = app.get(getQueueToken('notification-sending'));
+    notificationQueue = app.get(getQueueToken('notification-sending'));
   });
 
   afterAll(async () => {
@@ -33,9 +33,9 @@ describe('Queue Integration (E2E)', () => {
       await orderQueue.empty();
       await orderQueue.close();
     }
-    if (emailQueue) {
-      await emailQueue.empty();
-      await emailQueue.close();
+    if (notificationQueue) {
+      await notificationQueue.empty();
+      await notificationQueue.close();
     }
 
     if (app) {
@@ -48,23 +48,23 @@ describe('Queue Integration (E2E)', () => {
     if (orderQueue) {
       await orderQueue.empty();
     }
-    if (emailQueue) {
-      await emailQueue.empty();
+    if (notificationQueue) {
+      await notificationQueue.empty();
     }
   });
 
   describe('Queue Connection', () => {
     it('should connect to queues successfully', () => {
       expect(orderQueue).toBeDefined();
-      expect(emailQueue).toBeDefined();
+      expect(notificationQueue).toBeDefined();
     });
 
     it('should get queue names', async () => {
       const orderQueueName = await orderQueue.name;
-      const emailQueueName = await emailQueue.name;
+      const notificationQueueName = await notificationQueue.name;
 
       expect(orderQueueName).toBe('order-processing');
-      expect(emailQueueName).toBe('email-notifications');
+      expect(notificationQueueName).toBe('notification-sending');
     });
   });
 
