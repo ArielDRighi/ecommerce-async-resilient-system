@@ -37,7 +37,7 @@ Time:        150.922 s (~2.5 minutos)
 
 ---
 
-#### ⬜ Tarea 1.1: Arreglar response-snapshots.e2e-spec.ts
+#### ✅ Tarea 1.1: Arreglar response-snapshots.e2e-spec.ts
 **Problema:** Error de sintaxis TypeScript impide compilación
 ```typescript
 // Línea 18-22
@@ -48,12 +48,12 @@ uctsModule,  // ❌ Falta "Prod" al inicio → ProductsModule
 - `test/e2e/snapshots/response-snapshots.e2e-spec.ts`
 
 **Cambios necesarios:**
-1. Corregir `uctsModule` → `ProductsModule`
-2. Verificar imports correctos
-3. Verificar declaración de variables (`app`, `userToken`, `productId`, `orderId`)
+1. ✅ Corregir líneas 18-22 (eliminado código erróneo)
+2. ✅ Verificar imports correctos
+3. ✅ Verificar declaración de variables (`app`, `userToken`, `productId`, `orderId`)
 
 **Tests que se arreglarán:** 20 tests  
-**Estimado:** 10 minutos  
+**Tiempo real:** 5 minutos  
 **Commit:** `fix(e2e): correct syntax errors in response-snapshots test`
 
 ---
@@ -258,9 +258,11 @@ Time:        <120 seconds
 - [x] **Arreglo de formato** - Agregado `success: false` en AllExceptionsFilter
 - [x] **Creación de plan** - Documento E2E_FIXES_PLAN.md creado
 
-#### 🔴 PENDIENTE:
-- [ ] Tarea 1.1: response-snapshots.e2e-spec.ts
+#### � EN PROGRESO:
 - [ ] Tarea 1.2: queue-integration.e2e-spec.ts
+
+#### 🔴 PENDIENTE:
+- [x] Tarea 1.1: response-snapshots.e2e-spec.ts ✅
 - [ ] Tarea 2.1: database-integration.e2e-spec.ts (PostgreSQL syntax)
 - [ ] Tarea 2.2: Database cleanup
 - [ ] Tarea 3.1: Inventory endpoint
