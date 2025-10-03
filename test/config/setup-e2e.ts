@@ -11,8 +11,8 @@ export default async () => {
   process.env['DATABASE_URL'] =
     process.env['TEST_DATABASE_URL'] || 'postgresql://test:test@localhost:5433/test_ecommerce';
 
-  // Configure test Redis
-  process.env['REDIS_URL'] = process.env['TEST_REDIS_URL'] || 'redis://localhost:6380';
+  // Redis de testing (usar instancia de desarrollo)
+  process.env['REDIS_URL'] = process.env['TEST_REDIS_URL'] || 'redis://localhost:6379';
 
   // Configure JWT secrets
   process.env['JWT_SECRET'] = 'test-jwt-secret-key-e2e';
