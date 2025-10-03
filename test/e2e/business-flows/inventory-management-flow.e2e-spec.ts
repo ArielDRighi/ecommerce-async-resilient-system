@@ -66,17 +66,29 @@ describe('Inventory Management Flow (Business Flow)', () => {
     expect(productResponse.body.data.trackInventory).toBe(true);
 
     // ========================================================================
+    // STEP 1.5: Get inventory ID for the product
+    // ========================================================================
+    const inventoryLookupResponse = await request(app.getHttpServer())
+      .get(`/inventory/product/${productId}`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .expect(200);
+
+    const inventoryId = inventoryLookupResponse.body.data.id;
+    expect(inventoryId).toBeDefined();
+
+    // ========================================================================
     // STEP 2: Add initial stock
     // ========================================================================
     const addStockResponse = await request(app.getHttpServer())
       .post('/inventory/add-stock')
       .set('Authorization', `Bearer ${adminToken}`)
       .send({
-        productId: productId,
+        inventoryId: inventoryId,
+        movementType: 'RESTOCK',
         quantity: 100,
         reason: 'Initial stock',
       })
-      .expect(201);
+      .expect(200);
 
     expect(addStockResponse.body.data.quantity).toBeGreaterThanOrEqual(100);
 
@@ -154,16 +166,23 @@ describe('Inventory Management Flow (Business Flow)', () => {
 
     const limitedProductId = productResponse.body.data.id;
 
+    // Get inventory ID
+    const invLookup2 = await request(app.getHttpServer())
+      .get(`/inventory/product/${limitedProductId}`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .expect(200);
+
     // Add small stock
     await request(app.getHttpServer())
       .post('/inventory/add-stock')
       .set('Authorization', `Bearer ${adminToken}`)
       .send({
-        productId: limitedProductId,
+        inventoryId: invLookup2.body.data.id,
+        movementType: 'RESTOCK',
         quantity: 5,
         reason: 'Limited stock',
       })
-      .expect(201);
+      .expect(200);
 
     // Try to reserve more than available
     await request(app.getHttpServer())
@@ -193,15 +212,22 @@ describe('Inventory Management Flow (Business Flow)', () => {
 
     const adjustableProductId = productResponse.body.data.id;
 
+    // Get inventory ID
+    const invLookup3 = await request(app.getHttpServer())
+      .get(`/inventory/product/${adjustableProductId}`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .expect(200);
+
     await request(app.getHttpServer())
       .post('/inventory/add-stock')
       .set('Authorization', `Bearer ${adminToken}`)
       .send({
-        productId: adjustableProductId,
+        inventoryId: invLookup3.body.data.id,
+        movementType: 'RESTOCK',
         quantity: 100,
         reason: 'Initial stock',
       })
-      .expect(201);
+      .expect(200);
 
     // Adjust stock down (damage, loss, etc.)
     const adjustResponse = await request(app.getHttpServer())
@@ -241,15 +267,22 @@ describe('Inventory Management Flow (Business Flow)', () => {
 
     const reservableProductId = productResponse.body.data.id;
 
+    // Get inventory ID
+    const invLookup4 = await request(app.getHttpServer())
+      .get(`/inventory/product/${reservableProductId}`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .expect(200);
+
     await request(app.getHttpServer())
       .post('/inventory/add-stock')
       .set('Authorization', `Bearer ${adminToken}`)
       .send({
-        productId: reservableProductId,
+        inventoryId: invLookup4.body.data.id,
+        movementType: 'RESTOCK',
         quantity: 100,
         reason: 'Initial stock',
       })
-      .expect(201);
+      .expect(200);
 
     // Reserve stock
     await request(app.getHttpServer())

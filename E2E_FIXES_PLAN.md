@@ -3,8 +3,10 @@
 **Fecha de inicio:** 3 de Octubre, 2025  
 **Objetivo:** Arreglar todos los tests E2E para alcanzar >90% de tests pasando  
 **Estado actual:** 60/136 tests pasando (44%)  
-**Estado objetivo:** >120/136 tests pasando (>###### 🔴 PENDIENTE:
-- [x] Tarea 1.1: response-snapshots.e2e-spec.ts ✅
+**Estado objetivo:** >120/136 tests pasando (>###### 🔴 PENDIENT- [x] Tarea 2.1: database-integration.e2e-spec.ts (PostgreSQL syntax) ✅
+- [x] Tarea 2.2: Database cleanup ✅
+- [x] Tarea 3.1: Inventory endpoint ✅
+- [ ] Tarea 3.2: Otros endpoints- [x] Tarea 1.1: response-snapshots.e2e-spec.ts ✅
 - [x] Tarea 1.2: queue-integration.e2e-spec.ts ✅
 - [x] Tarea 2.1: database-integration.e2e-spec.ts (PostgreSQL syntax) ✅
 - [x] Tarea 2.2: Database cleanup ✅
@@ -150,7 +152,7 @@ afterEach(async () => {
 
 ### **FASE 3: Arreglos de Endpoints** ⏱️ 90 min
 
-#### ⬜ Tarea 3.1: Investigar endpoint de inventario
+#### ✅ Tarea 3.1: Investigar endpoint de inventario
 **Problema:** `POST /inventory/add-stock` rechaza requests (400 Bad Request)
 
 **Archivos a revisar:**
@@ -165,7 +167,13 @@ afterEach(async () => {
 4. Corregir el test o el endpoint (según corresponda)
 
 **Tests que se arreglarán:** 4 tests  
-**Estimado:** 30 minutos  
+**Tiempo real:** 25 minutos  
+**Cambios realizados:**
+- Tests ahora obtienen `inventoryId` antes de llamar `/inventory/add-stock`
+- Agregado campo requerido `movementType: 'RESTOCK'`
+- Cambiado expect de 201 a 200 (endpoint retorna OK no CREATED)
+- Arreglados 4 tests que estaban enviando `productId` en vez de `inventoryId`
+
 **Commit:** `fix(e2e): correct inventory endpoint payload structure`
 
 ---
