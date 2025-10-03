@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// Test file - using 'any' for mocking payment responses is acceptable
 import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException } from '@nestjs/common';
 import { MockPaymentProvider } from './mock-payment.provider';

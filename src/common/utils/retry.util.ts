@@ -208,11 +208,11 @@ export class RetryUtil {
       }
 
       // Check for HTTP status codes (if error has status property)
-      const errorWithStatus = error as any;
+      const errorWithStatus = error as { status?: number; statusCode?: number };
       if (errorWithStatus.status || errorWithStatus.statusCode) {
-        const status = errorWithStatus.status || errorWithStatus.statusCode;
+        const status = errorWithStatus.status ?? errorWithStatus.statusCode;
         // Retry on 5xx server errors and 429 Too Many Requests
-        return status >= 500 || status === 429;
+        return status !== undefined && (status >= 500 || status === 429);
       }
     }
 

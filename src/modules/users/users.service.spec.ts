@@ -317,8 +317,12 @@ describe('UsersService', () => {
       repository.findOne.mockResolvedValue(null);
 
       // Act & Assert
-      await expect(service.update('123e4567-e89b-12d3-a456-426614174000', updateDto)).rejects.toThrow(NotFoundException);
-      await expect(service.update('123e4567-e89b-12d3-a456-426614174000', updateDto)).rejects.toThrow('User with ID 123e4567-e89b-12d3-a456-426614174000 not found');
+      await expect(
+        service.update('123e4567-e89b-12d3-a456-426614174000', updateDto),
+      ).rejects.toThrow(NotFoundException);
+      await expect(
+        service.update('123e4567-e89b-12d3-a456-426614174000', updateDto),
+      ).rejects.toThrow('User with ID 123e4567-e89b-12d3-a456-426614174000 not found');
     });
 
     it('should throw BadRequestException when database error occurs during update', async () => {
@@ -328,8 +332,12 @@ describe('UsersService', () => {
       repository.update.mockRejectedValue(new Error('Database error'));
 
       // Act & Assert
-      await expect(service.update('123e4567-e89b-12d3-a456-426614174000', updateDto)).rejects.toThrow(BadRequestException);
-      await expect(service.update('123e4567-e89b-12d3-a456-426614174000', updateDto)).rejects.toThrow('Failed to update user');
+      await expect(
+        service.update('123e4567-e89b-12d3-a456-426614174000', updateDto),
+      ).rejects.toThrow(BadRequestException);
+      await expect(
+        service.update('123e4567-e89b-12d3-a456-426614174000', updateDto),
+      ).rejects.toThrow('Failed to update user');
     });
   });
 
@@ -363,8 +371,12 @@ describe('UsersService', () => {
       repository.update.mockRejectedValue(new Error('Database error'));
 
       // Act & Assert
-      await expect(service.remove('123e4567-e89b-12d3-a456-426614174000')).rejects.toThrow(BadRequestException);
-      await expect(service.remove('123e4567-e89b-12d3-a456-426614174000')).rejects.toThrow('Failed to delete user');
+      await expect(service.remove('123e4567-e89b-12d3-a456-426614174000')).rejects.toThrow(
+        BadRequestException,
+      );
+      await expect(service.remove('123e4567-e89b-12d3-a456-426614174000')).rejects.toThrow(
+        'Failed to delete user',
+      );
     });
   });
 
@@ -400,8 +412,12 @@ describe('UsersService', () => {
       repository.findOne.mockResolvedValue(null);
 
       // Act & Assert
-      await expect(service.activate('123e4567-e89b-12d3-a456-426614174000')).rejects.toThrow(NotFoundException);
-      await expect(service.activate('123e4567-e89b-12d3-a456-426614174000')).rejects.toThrow('User with ID 123e4567-e89b-12d3-a456-426614174000 not found');
+      await expect(service.activate('123e4567-e89b-12d3-a456-426614174000')).rejects.toThrow(
+        NotFoundException,
+      );
+      await expect(service.activate('123e4567-e89b-12d3-a456-426614174000')).rejects.toThrow(
+        'User with ID 123e4567-e89b-12d3-a456-426614174000 not found',
+      );
     });
 
     it('should throw BadRequestException when database error occurs during activation', async () => {
@@ -410,8 +426,12 @@ describe('UsersService', () => {
       repository.update.mockRejectedValue(new Error('Database error'));
 
       // Act & Assert
-      await expect(service.activate('123e4567-e89b-12d3-a456-426614174000')).rejects.toThrow(BadRequestException);
-      await expect(service.activate('123e4567-e89b-12d3-a456-426614174000')).rejects.toThrow('Failed to activate user');
+      await expect(service.activate('123e4567-e89b-12d3-a456-426614174000')).rejects.toThrow(
+        BadRequestException,
+      );
+      await expect(service.activate('123e4567-e89b-12d3-a456-426614174000')).rejects.toThrow(
+        'Failed to activate user',
+      );
     });
   });
 
@@ -582,7 +602,9 @@ describe('UsersService', () => {
 
       // Act & Assert
       await expect(service.findAll({ page: 1, limit: 10 })).rejects.toThrow(BadRequestException);
-      await expect(service.findAll({ page: 1, limit: 10 })).rejects.toThrow('Failed to fetch users');
+      await expect(service.findAll({ page: 1, limit: 10 })).rejects.toThrow(
+        'Failed to fetch users',
+      );
     });
   });
 });

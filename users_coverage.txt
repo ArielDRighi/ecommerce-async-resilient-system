@@ -1,0 +1,133 @@
+
+> ecommerce-async-resilient-system@1.0.0 test
+> jest --config jest.config.js --testPathPattern=users\.(service|controller)\.spec --coverage
+
+-----------------------------------------|---------|----------|---------|---------|---------------------------------------------------------------
+File                                     | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                                             
+-----------------------------------------|---------|----------|---------|---------|---------------------------------------------------------------
+All files                                |    4.19 |     2.84 |     3.9 |    4.24 |                                                               
+ src                                     |       0 |        0 |       0 |       0 |                                                               
+  app.controller.ts                      |       0 |      100 |       0 |       0 | 1-54                                                          
+  app.module.ts                          |       0 |      100 |       0 |       0 | 1-121                                                         
+  app.service.ts                         |       0 |        0 |       0 |       0 | 1-20                                                          
+  health-check.ts                        |       0 |        0 |       0 |       0 | 2-35                                                          
+ src/common/decorators                   |       0 |        0 |       0 |       0 |                                                               
+  current-user.decorator.ts              |       0 |        0 |       0 |       0 | 1-20                                                          
+  public.decorator.ts                    |       0 |      100 |       0 |       0 | 1-8                                                           
+ src/common/filters                      |       0 |        0 |       0 |       0 |                                                               
+  all-exceptions.filter.ts               |       0 |        0 |       0 |       0 | 1-148                                                         
+ src/common/guards                       |       0 |        0 |       0 |       0 |                                                               
+  jwt-auth.guard.ts                      |       0 |        0 |       0 |       0 | 1-82                                                          
+ src/common/interceptors                 |       0 |        0 |       0 |       0 |                                                               
+  logging.interceptor.ts                 |       0 |        0 |       0 |       0 | 1-171                                                         
+  response.interceptor.ts                |       0 |        0 |       0 |       0 | 1-62                                                          
+ src/common/pipes                        |       0 |        0 |       0 |       0 |                                                               
+  custom-validation.pipe.ts              |       0 |        0 |       0 |       0 | 1-25                                                          
+ src/common/utils                        |       0 |        0 |       0 |       0 |                                                               
+  circuit-breaker.util.ts                |       0 |        0 |       0 |       0 | 1-262                                                         
+  logger.module.ts                       |       0 |      100 |     100 |       0 | 1-11                                                          
+  retry.util.ts                          |       0 |        0 |       0 |       0 | 1-219                                                         
+  winston-logger.service.ts              |       0 |        0 |       0 |       0 | 1-213                                                         
+ src/config                              |       0 |        0 |       0 |       0 |                                                               
+  env.validation.ts                      |       0 |        0 |       0 |       0 | 1-127                                                         
+  typeorm.migrations.ts                  |       0 |      100 |     100 |       0 | 1-4                                                           
+ src/database                            |       0 |      100 |       0 |       0 |                                                               
+  entities.ts                            |       0 |      100 |       0 |       0 | 2-16                                                          
+ src/database/migrations                 |       0 |      100 |       0 |       0 |                                                               
+  1727215000000-CreateInitialSchema.ts   |       0 |      100 |       0 |       0 | 3-443                                                         
+  1727220000000-CreateCategoriesTable.ts |       0 |      100 |       0 |       0 | 3-104                                                         
+  1727221000000-AddCategoryToProducts.ts |       0 |      100 |       0 |       0 | 3-46                                                          
+ src/database/seeds                      |       0 |        0 |       0 |       0 |                                                               
+  initial-seed.ts                        |       0 |        0 |       0 |       0 | 2-249                                                         
+ src/health                              |       0 |        0 |       0 |       0 |                                                               
+  health.controller.ts                   |       0 |      100 |       0 |       0 | 1-120                                                         
+  health.module.ts                       |       0 |      100 |     100 |       0 | 1-35                                                          
+  health.service.ts                      |       0 |        0 |       0 |       0 | 1-80                                                          
+  metrics.controller.ts                  |       0 |      100 |       0 |       0 | 1-47                                                          
+  prometheus.service.ts                  |       0 |      100 |       0 |       0 | 1-162                                                         
+ src/health/indicators                   |       0 |        0 |       0 |       0 |                                                               
+  database.health-indicator.ts           |       0 |        0 |       0 |       0 | 1-102                                                         
+  queue.health-indicator.ts              |       0 |        0 |       0 |       0 | 1-236                                                         
+  redis.health-indicator.ts              |       0 |        0 |       0 |       0 | 1-109                                                         
+ src/modules/auth                        |       0 |        0 |       0 |       0 |                                                               
+  auth.controller.ts                     |       0 |      100 |       0 |       0 | 1-172                                                         
+  auth.module.ts                         |       0 |        0 |       0 |       0 | 1-30                                                          
+  auth.service.ts                        |       0 |        0 |       0 |       0 | 1-265                                                         
+ src/modules/auth/decorators             |      60 |        0 |       0 |    62.5 |                                                               
+  current-user.decorator.ts              |      40 |        0 |       0 |      40 | 6-9                                                           
+  public.decorator.ts                    |      80 |      100 |       0 |     100 |                                                               
+ src/modules/auth/guards                 |      50 |        0 |       0 |      40 |                                                               
+  jwt-auth.guard.ts                      |      50 |        0 |       0 |      40 | 8-25                                                          
+ src/modules/auth/strategies             |       0 |        0 |       0 |       0 |                                                               
+  jwt.strategy.ts                        |       0 |        0 |       0 |       0 | 1-55                                                          
+ src/modules/categories                  |       0 |        0 |       0 |       0 |                                                               
+  categories.controller.ts               |       0 |        0 |       0 |       0 | 1-358                                                         
+  categories.module.ts                   |       0 |      100 |     100 |       0 | 1-13                                                          
+  categories.service.ts                  |       0 |        0 |       0 |       0 | 1-649                                                         
+ src/modules/events                      |       0 |      100 |     100 |       0 |                                                               
+  events.module.ts                       |       0 |      100 |     100 |       0 | 1-56                                                          
+ src/modules/events/handlers             |       0 |        0 |       0 |       0 |                                                               
+  base.event-handler.ts                  |       0 |        0 |       0 |       0 | 1-69                                                          
+  inventory-reserved.handler.ts          |       0 |      100 |       0 |       0 | 1-32                                                          
+  order-confirmed.handler.ts             |       0 |      100 |       0 |       0 | 1-32                                                          
+  order-created.handler.ts               |       0 |      100 |       0 |       0 | 1-21                                                          
+  payment-processed.handler.ts           |       0 |      100 |       0 |       0 | 1-32                                                          
+ src/modules/events/processors           |       0 |        0 |       0 |       0 |                                                               
+  outbox.processor.ts                    |       0 |        0 |       0 |       0 | 1-375                                                         
+ src/modules/events/publishers           |       0 |        0 |       0 |       0 |                                                               
+  event.publisher.ts                     |       0 |        0 |       0 |       0 | 1-155                                                         
+ src/modules/events/types                |       0 |        0 |       0 |       0 |                                                               
+  payment.events.ts                      |       0 |        0 |       0 |       0 | 6-24                                                          
+ src/modules/inventory                   |       0 |        0 |       0 |       0 |                                                               
+  inventory.controller.ts                |       0 |        0 |       0 |       0 | 1-394                                                         
+  inventory.module.ts                    |       0 |      100 |     100 |       0 | 1-14                                                          
+  inventory.service.ts                   |       0 |        0 |       0 |       0 | 1-711                                                         
+ src/modules/notifications               |       0 |        0 |       0 |       0 |                                                               
+  notifications.module.ts                |       0 |      100 |     100 |       0 | 1-27                                                          
+  notifications.service.ts               |       0 |        0 |       0 |       0 | 1-256                                                         
+ src/modules/notifications/processors    |       0 |        0 |       0 |       0 |                                                               
+  notification.processor.ts              |       0 |        0 |       0 |       0 | 1-71                                                          
+ src/modules/notifications/providers     |       0 |        0 |       0 |       0 |                                                               
+  email.provider.ts                      |       0 |        0 |       0 |       0 | 1-181                                                         
+  sms.provider.ts                        |       0 |        0 |       0 |       0 | 1-230                                                         
+ src/modules/notifications/templates     |       0 |        0 |       0 |       0 |                                                               
+  template.service.ts                    |       0 |        0 |       0 |       0 | 1-371                                                         
+ src/modules/orders                      |       0 |        0 |       0 |       0 |                                                               
+  orders.controller.ts                   |       0 |      100 |       0 |       0 | 1-163                                                         
+  orders.module.ts                       |       0 |      100 |     100 |       0 | 1-35                                                          
+  orders.service.ts                      |       0 |        0 |       0 |       0 | 1-363                                                         
+ src/modules/orders/services             |       0 |        0 |       0 |       0 |                                                               
+  order-processing-saga.service.ts       |       0 |        0 |       0 |       0 | 1-684                                                         
+ src/modules/orders/types                |       0 |        0 |       0 |       0 |                                                               
+  saga.types.ts                          |       0 |        0 |       0 |       0 | 5-112                                                         
+ src/modules/payments                    |       0 |        0 |       0 |       0 |                                                               
+  payments.module.ts                     |       0 |      100 |     100 |       0 | 1-9                                                           
+  payments.service.ts                    |       0 |        0 |       0 |       0 | 1-289                                                         
+ src/modules/payments/providers          |       0 |        0 |       0 |       0 |                                                               
+  mock-payment.provider.ts               |       0 |        0 |       0 |       0 | 1-380                                                         
+ src/modules/products                    |       0 |        0 |       0 |       0 |                                                               
+  products.controller.ts                 |       0 |        0 |       0 |       0 | 1-357                                                         
+  products.module.ts                     |       0 |      100 |     100 |       0 | 1-20                                                          
+  products.service.ts                    |       0 |        0 |       0 |       0 | 1-492                                                         
+ src/modules/users                       |   84.31 |    57.14 |     100 |   85.03 |                                                               
+  users.controller.ts                    |     100 |      100 |     100 |     100 |                                                               
+  users.module.ts                        |       0 |      100 |     100 |       0 | 1-13                                                          
+  users.service.ts                       |   85.58 |    57.14 |     100 |   85.32 | 51-54,102-105,116-119,131-134,170,182-185,204-207,222,234-237 
+ src/queues                              |       0 |        0 |       0 |       0 |                                                               
+  bull-board.controller.ts               |       0 |      100 |       0 |       0 | 1-74                                                          
+  queue.module.ts                        |       0 |        0 |       0 |       0 | 1-98                                                          
+  queue.service.ts                       |       0 |        0 |       0 |       0 | 1-273                                                         
+ src/queues/processors                   |       0 |        0 |       0 |       0 |                                                               
+  base.processor.ts                      |       0 |        0 |       0 |       0 | 1-200                                                         
+  inventory.processor.ts                 |       0 |      100 |       0 |       0 | 1-109                                                         
+  notification.processor.ts              |       0 |        0 |       0 |       0 | 1-150                                                         
+  order-processing.processor.ts          |       0 |        0 |       0 |       0 | 1-151                                                         
+  payment.processor.ts                   |       0 |        0 |       0 |       0 | 1-131                                                         
+-----------------------------------------|---------|----------|---------|---------|---------------------------------------------------------------
+
+=============================== Coverage summary ===============================
+Statements   : 4.19% ( 141/3365 )
+Branches     : 2.84% ( 28/985 )
+Functions    : 3.9% ( 22/564 )
+Lines        : 4.24% ( 134/3160 )
+================================================================================
