@@ -1,9 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
-import { BullModule, getQueueToken } from '@nestjs/bull';
+import { AppModule } from '../../../src/app.module';
 import { Queue } from 'bull';
-import { QueueModule } from '../../../src/queues/queue.module';
+import { getQueueToken } from '@nestjs/bull';
 import { sleep } from '../../helpers/test-helpers';
 
 /**
@@ -18,26 +17,7 @@ describe('Queue Integration (E2E)', () => {
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [
-        ConfigModule.forRoot({
-          isGlobal: true,
-          envFilePath: ['.env.test', '.env.example'],
-        }),
-        BullModule.forRoot({
-          redis: {
-            host: process.env['REDIS_HOST'] || 'localhost',
-            port: parseInt(process.env['REDIS_PORT'] || '6379'),
-            maxRetriesPerRequest: null,
-            enableReadyCheck: false,
-          },
-        }),
-        BullModule.registerQueue(
-          { name: 'order-processing' },
-          { name: 'email-notifications' },
-          { name: 'inventory-updates' },
-        ),
-        QueueModule,
-      ],
+      imports: [AppModule],
     }).compile();
 
     app = moduleFixture.createNestApplication();

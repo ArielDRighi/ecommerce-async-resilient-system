@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { HealthModule } from '../../../src/health/health.module';
+import { AppModule } from '../../../src/app.module';
 
 /**
  * Health Check E2E Tests
@@ -13,7 +13,7 @@ describe('Health Checks (Smoke)', () => {
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [HealthModule],
+      imports: [AppModule],
     }).compile();
 
     app = moduleFixture.createNestApplication();

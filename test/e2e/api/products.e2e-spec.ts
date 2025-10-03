@@ -1,12 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
 import request from 'supertest';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { ProductsModule } from '../../../src/modules/products/products.module';
-import { AuthModule } from '../../../src/modules/auth/auth.module';
-import { UsersModule } from '../../../src/modules/users/users.module';
-import { JwtModule } from '@nestjs/jwt';
+import { AppModule } from '../../../src/app.module';
 import { generateTestEmail, generateTestSKU } from '../../helpers/mock-data';
 
 /**
@@ -21,26 +16,7 @@ describe('Products API (E2E)', () => {
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [
-        ConfigModule.forRoot({
-          isGlobal: true,
-          envFilePath: ['.env.test', '.env.example'],
-        }),
-        TypeOrmModule.forRoot({
-          type: 'sqlite',
-          database: ':memory:',
-          entities: [__dirname + '/../../../src/**/*.entity{.ts,.js}'],
-          synchronize: true,
-          dropSchema: true,
-        }),
-        JwtModule.register({
-          secret: 'test-secret',
-          signOptions: { expiresIn: '1h' },
-        }),
-        ProductsModule,
-        AuthModule,
-        UsersModule,
-      ],
+      imports: [AppModule],
     }).compile();
 
     app = moduleFixture.createNestApplication();

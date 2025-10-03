@@ -1,11 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
 import request from 'supertest';
-import { AuthModule } from '../../../src/modules/auth/auth.module';
-import { UsersModule } from '../../../src/modules/users/users.module';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { JwtModule } from '@nestjs/jwt';
+import { AppModule } from '../../../src/app.module';
 import { generateTestEmail } from '../../helpers/mock-data';
 
 /**
@@ -22,25 +18,7 @@ describe('Authentication API (E2E)', () => {
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [
-        ConfigModule.forRoot({
-          isGlobal: true,
-          envFilePath: ['.env.test', '.env.example'],
-        }),
-        TypeOrmModule.forRoot({
-          type: 'sqlite',
-          database: ':memory:',
-          entities: [__dirname + '/../../../src/**/*.entity{.ts,.js}'],
-          synchronize: true,
-          dropSchema: true,
-        }),
-        JwtModule.register({
-          secret: 'test-secret',
-          signOptions: { expiresIn: '1h' },
-        }),
-        AuthModule,
-        UsersModule,
-      ],
+      imports: [AppModule],
     }).compile();
 
     app = moduleFixture.createNestApplication();

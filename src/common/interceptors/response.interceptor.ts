@@ -15,6 +15,7 @@ export interface ResponseFormat<T> {
   data: T;
   timestamp: string;
   path: string;
+  success: boolean;
 }
 
 @Injectable()
@@ -31,6 +32,7 @@ export class ResponseInterceptor<T> implements NestInterceptor<T, ResponseFormat
         data,
         timestamp: new Date().toISOString(),
         path: request.url,
+        success: statusCode >= 200 && statusCode < 300,
       })),
       catchError((error) => {
         // Handle timeout errors

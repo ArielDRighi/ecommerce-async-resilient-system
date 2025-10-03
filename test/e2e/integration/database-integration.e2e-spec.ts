@@ -1,11 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { AppModule } from '../../../src/app.module';
 import { DataSource } from 'typeorm';
-import { UsersModule } from '../../../src/modules/users/users.module';
-import { ProductsModule } from '../../../src/modules/products/products.module';
-import { OrdersModule } from '../../../src/modules/orders/orders.module';
 import { generateTestEmail, generateTestSKU } from '../../helpers/mock-data';
 
 /**
@@ -19,23 +15,7 @@ describe('Database Integration (E2E)', () => {
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [
-        ConfigModule.forRoot({
-          isGlobal: true,
-          envFilePath: ['.env.test', '.env.example'],
-        }),
-        TypeOrmModule.forRoot({
-          type: 'sqlite',
-          database: ':memory:',
-          entities: [__dirname + '/../../../src/**/*.entity{.ts,.js}'],
-          synchronize: true,
-          dropSchema: true,
-          logging: false,
-        }),
-        UsersModule,
-        ProductsModule,
-        OrdersModule,
-      ],
+      imports: [AppModule],
     }).compile();
 
     app = moduleFixture.createNestApplication();
