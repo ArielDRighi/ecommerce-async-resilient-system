@@ -24,7 +24,7 @@ describe('Queue Integration (E2E)', () => {
     await app.init();
 
     orderQueue = app.get(getQueueToken('order-processing'));
-    emailQueue = app.get(getQueueToken('email-notifications'));
+    emailQueue = app.get(getQueueToken('notification-sending'));
   });
 
   afterAll(async () => {

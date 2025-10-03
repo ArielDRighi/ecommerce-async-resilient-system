@@ -11,6 +11,7 @@ export interface HttpExceptionResponse {
   path: string;
   method: string;
   correlationId?: string;
+  success: boolean;
 }
 
 @Catch()
@@ -87,6 +88,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
       path: request.url,
       method: request.method,
       correlationId: request.correlationId,
+      success: false,
     };
 
     // Remove correlationId from response in production if not set
