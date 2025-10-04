@@ -167,9 +167,7 @@ describe('QueueService', () => {
       const error = new Error('Queue full');
       orderQueue.add.mockRejectedValue(error);
 
-      await expect(
-        service.addOrderJob('process-order', jobData),
-      ).rejects.toThrow('Queue full');
+      await expect(service.addOrderJob('process-order', jobData)).rejects.toThrow('Queue full');
     });
   });
 
@@ -221,9 +219,9 @@ describe('QueueService', () => {
       const error = new Error('Payment gateway unavailable');
       paymentQueue.add.mockRejectedValue(error);
 
-      await expect(
-        service.addPaymentJob('process-payment', jobData),
-      ).rejects.toThrow('Payment gateway unavailable');
+      await expect(service.addPaymentJob('process-payment', jobData)).rejects.toThrow(
+        'Payment gateway unavailable',
+      );
     });
   });
 
@@ -262,9 +260,9 @@ describe('QueueService', () => {
       const error = new Error('Inventory service down');
       inventoryQueue.add.mockRejectedValue(error);
 
-      await expect(
-        service.addInventoryJob('reserve-stock', jobData),
-      ).rejects.toThrow('Inventory service down');
+      await expect(service.addInventoryJob('reserve-stock', jobData)).rejects.toThrow(
+        'Inventory service down',
+      );
     });
   });
 
@@ -304,9 +302,9 @@ describe('QueueService', () => {
       const error = new Error('Notification service unavailable');
       notificationQueue.add.mockRejectedValue(error);
 
-      await expect(
-        service.addNotificationJob('send-email', jobData),
-      ).rejects.toThrow('Notification service unavailable');
+      await expect(service.addNotificationJob('send-email', jobData)).rejects.toThrow(
+        'Notification service unavailable',
+      );
     });
   });
 
@@ -381,9 +379,9 @@ describe('QueueService', () => {
     });
 
     it('should throw error for unknown queue name', async () => {
-      await expect(
-        service.getQueueMetrics('unknown-queue'),
-      ).rejects.toThrow('Unknown queue: unknown-queue');
+      await expect(service.getQueueMetrics('unknown-queue')).rejects.toThrow(
+        'Unknown queue: unknown-queue',
+      );
     });
   });
 
@@ -442,9 +440,9 @@ describe('QueueService', () => {
     });
 
     it('should throw error for unknown queue name', async () => {
-      await expect(
-        service.pauseQueue('unknown-queue'),
-      ).rejects.toThrow('Unknown queue: unknown-queue');
+      await expect(service.pauseQueue('unknown-queue')).rejects.toThrow(
+        'Unknown queue: unknown-queue',
+      );
     });
   });
 
@@ -474,9 +472,9 @@ describe('QueueService', () => {
     });
 
     it('should throw error for unknown queue name', async () => {
-      await expect(
-        service.resumeQueue('unknown-queue'),
-      ).rejects.toThrow('Unknown queue: unknown-queue');
+      await expect(service.resumeQueue('unknown-queue')).rejects.toThrow(
+        'Unknown queue: unknown-queue',
+      );
     });
   });
 
@@ -497,9 +495,9 @@ describe('QueueService', () => {
     });
 
     it('should throw error for unknown queue name', async () => {
-      await expect(
-        service.cleanQueue('unknown-queue'),
-      ).rejects.toThrow('Unknown queue: unknown-queue');
+      await expect(service.cleanQueue('unknown-queue')).rejects.toThrow(
+        'Unknown queue: unknown-queue',
+      );
     });
   });
 
@@ -517,9 +515,9 @@ describe('QueueService', () => {
     });
 
     it('should throw error for unknown queue name', async () => {
-      await expect(
-        service.emptyQueue('unknown-queue'),
-      ).rejects.toThrow('Unknown queue: unknown-queue');
+      await expect(service.emptyQueue('unknown-queue')).rejects.toThrow(
+        'Unknown queue: unknown-queue',
+      );
     });
   });
 
@@ -587,9 +585,7 @@ describe('QueueService', () => {
 
     it('should wait for active jobs to complete before closing', async () => {
       // First call: 2 active jobs, second call: 0 active jobs
-      orderQueue.getActiveCount
-        .mockResolvedValueOnce(2)
-        .mockResolvedValueOnce(0);
+      orderQueue.getActiveCount.mockResolvedValueOnce(2).mockResolvedValueOnce(0);
       paymentQueue.getActiveCount.mockResolvedValue(0);
       inventoryQueue.getActiveCount.mockResolvedValue(0);
       notificationQueue.getActiveCount.mockResolvedValue(0);
@@ -643,9 +639,9 @@ describe('QueueService', () => {
       const error = new Error('Redis connection lost');
       orderQueue.getJobCounts.mockRejectedValue(error);
 
-      await expect(
-        service.getQueueMetrics('order-processing'),
-      ).rejects.toThrow('Redis connection lost');
+      await expect(service.getQueueMetrics('order-processing')).rejects.toThrow(
+        'Redis connection lost',
+      );
     });
   });
 });
