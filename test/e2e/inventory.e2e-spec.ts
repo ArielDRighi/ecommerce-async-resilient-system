@@ -440,11 +440,13 @@ describe('Inventory E2E Tests', () => {
       expect(response.body.data.data.meta).toBeDefined();
     });
 
-    it('should accept location filter parameter (returns 500 - known issue)', async () => {
-      // Note: This currently returns 500 - potential bug in the endpoint
-      await request(app.getHttpServer())
+    it('should accept location filter parameter', async () => {
+      const response = await request(app.getHttpServer())
         .get('/inventory/low-stock?location=MAIN_WAREHOUSE')
-        .expect(HttpStatus.INTERNAL_SERVER_ERROR);
+        .expect(HttpStatus.OK);
+
+      expect(response.body.data.data.data).toBeInstanceOf(Array);
+      expect(response.body.data.data.meta).toBeDefined();
     });
   });
 
@@ -459,11 +461,13 @@ describe('Inventory E2E Tests', () => {
       expect(response.body.data.data.meta).toBeDefined();
     });
 
-    it('should accept location filter parameter (returns 500 - known issue)', async () => {
-      // Note: This currently returns 500 - potential bug in the endpoint
-      await request(app.getHttpServer())
+    it('should accept location filter parameter', async () => {
+      const response = await request(app.getHttpServer())
         .get('/inventory/out-of-stock?location=MAIN_WAREHOUSE')
-        .expect(HttpStatus.INTERNAL_SERVER_ERROR);
+        .expect(HttpStatus.OK);
+
+      expect(response.body.data.data.data).toBeInstanceOf(Array);
+      expect(response.body.data.data.meta).toBeDefined();
     });
   });
 

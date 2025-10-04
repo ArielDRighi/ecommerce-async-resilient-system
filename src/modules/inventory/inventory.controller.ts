@@ -296,14 +296,10 @@ export class InventoryController {
     type: PaginatedResponseDto<InventoryResponseDto>,
   })
   async getLowStockItems(
-    @Query('page') page: number = 1,
-    @Query('limit') limit: number = 20,
-    @Query('location') location?: string,
+    @Query(ValidationPipe) queryParams: InventoryQueryDto,
   ): Promise<PaginatedResponseDto<InventoryResponseDto>> {
     const queryDto: InventoryQueryDto = {
-      page,
-      limit,
-      location,
+      ...queryParams,
       status: 'LOW_STOCK',
     };
 
@@ -337,14 +333,10 @@ export class InventoryController {
     type: PaginatedResponseDto<InventoryResponseDto>,
   })
   async getOutOfStockItems(
-    @Query('page') page: number = 1,
-    @Query('limit') limit: number = 20,
-    @Query('location') location?: string,
+    @Query(ValidationPipe) queryParams: InventoryQueryDto,
   ): Promise<PaginatedResponseDto<InventoryResponseDto>> {
     const queryDto: InventoryQueryDto = {
-      page,
-      limit,
-      location,
+      ...queryParams,
       status: 'OUT_OF_STOCK',
     };
 
