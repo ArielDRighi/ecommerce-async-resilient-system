@@ -195,9 +195,7 @@ describe('Products E2E Tests', () => {
     });
 
     it('should list all products with default pagination', async () => {
-      const response = await request(app.getHttpServer())
-        .get('/products')
-        .expect(HttpStatus.OK);
+      const response = await request(app.getHttpServer()).get('/products').expect(HttpStatus.OK);
 
       const { data } = response.body;
       const productsResponse = data.data;

@@ -1,0 +1,378 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Response Snapshots (E2E) Authentication Response Snapshots should match login response structure 1`] = `
+{
+  "data": {
+    "accessToken": Any<String>,
+    "expiresIn": 86400,
+    "refreshToken": Any<String>,
+    "tokenType": "Bearer",
+    "user": {
+      "createdAt": Any<String>,
+      "dateOfBirth": null,
+      "email": Any<String>,
+      "emailVerifiedAt": null,
+      "firstName": "Login",
+      "fullName": "Login User",
+      "id": Any<String>,
+      "isActive": true,
+      "language": "en",
+      "lastLoginAt": Any<String>,
+      "lastName": "User",
+      "phoneNumber": null,
+      "timezone": "UTC",
+      "updatedAt": Any<String>,
+    },
+  },
+  "message": "Success",
+  "path": "/auth/login",
+  "statusCode": 200,
+  "success": true,
+  "timestamp": Any<String>,
+}
+`;
+
+exports[`Response Snapshots (E2E) Authentication Response Snapshots should match registration response structure 1`] = `
+{
+  "data": {
+    "accessToken": Any<String>,
+    "expiresIn": 86400,
+    "refreshToken": Any<String>,
+    "tokenType": "Bearer",
+    "user": {
+      "createdAt": Any<String>,
+      "dateOfBirth": null,
+      "email": Any<String>,
+      "emailVerifiedAt": null,
+      "firstName": "New",
+      "fullName": "New User",
+      "id": Any<String>,
+      "isActive": true,
+      "language": "en",
+      "lastLoginAt": null,
+      "lastName": "User",
+      "phoneNumber": null,
+      "timezone": "UTC",
+      "updatedAt": Any<String>,
+    },
+  },
+  "message": "Created successfully",
+  "path": "/auth/register",
+  "statusCode": 201,
+  "success": true,
+  "timestamp": Any<String>,
+}
+`;
+
+exports[`Response Snapshots (E2E) Error Response Snapshots should match 400 Bad Request error structure 1`] = `
+{
+  "correlationId": "15abff8c-296f-4cd2-8bf9-2b74e7a3bd42",
+  "error": {
+    "0": "B",
+    "1": "A",
+    "10": "T",
+    "2": "D",
+    "3": "_",
+    "4": "R",
+    "5": "E",
+    "6": "Q",
+    "7": "U",
+    "8": "E",
+    "9": "S",
+    "message": Any<String>,
+  },
+  "message": [
+    "Price must be at least $0.01",
+    "Price must be greater than 0",
+    "SKU can only contain uppercase letters, numbers, hyphens, and underscores",
+    "SKU must not exceed 100 characters",
+    "SKU must be at least 3 characters long",
+    "SKU is required",
+    "SKU must be a string",
+  ],
+  "method": "POST",
+  "path": "/products",
+  "statusCode": 400,
+  "success": false,
+  "timestamp": Any<String>,
+}
+`;
+
+exports[`Response Snapshots (E2E) Error Response Snapshots should match 401 Unauthorized error structure 1`] = `
+{
+  "error": {
+    "0": "U",
+    "1": "N",
+    "10": "E",
+    "11": "D",
+    "2": "A",
+    "3": "U",
+    "4": "T",
+    "5": "H",
+    "6": "O",
+    "7": "R",
+    "8": "I",
+    "9": "Z",
+    "message": Any<String>,
+  },
+  "message": "Unauthorized",
+  "method": "GET",
+  "path": "/users/me",
+  "statusCode": 401,
+  "success": false,
+  "timestamp": Any<String>,
+}
+`;
+
+exports[`Response Snapshots (E2E) Error Response Snapshots should match 404 Not Found error structure 1`] = `
+{
+  "correlationId": "2d70d4b1-e09d-49df-87ae-e133852890c1",
+  "error": {
+    "0": "N",
+    "1": "O",
+    "2": "T",
+    "3": "_",
+    "4": "F",
+    "5": "O",
+    "6": "U",
+    "7": "N",
+    "8": "D",
+    "message": Any<String>,
+  },
+  "message": "Product with ID 00000000-0000-0000-0000-000000000000 not found",
+  "method": "GET",
+  "path": "/products/00000000-0000-0000-0000-000000000000",
+  "statusCode": 404,
+  "success": false,
+  "timestamp": Any<String>,
+}
+`;
+
+exports[`Response Snapshots (E2E) Health Check Response Snapshots should match health check response structure 1`] = `
+{
+  "details": {
+    "database": {
+      "status": "up",
+    },
+    "memory_heap": {
+      "status": "up",
+    },
+    "memory_rss": {
+      "status": "up",
+    },
+    "storage": {
+      "status": "up",
+    },
+  },
+  "error": {},
+  "info": {
+    "database": {
+      "status": "up",
+    },
+    "memory_heap": {
+      "status": "up",
+    },
+    "memory_rss": {
+      "status": "up",
+    },
+    "storage": {
+      "status": "up",
+    },
+  },
+  "memory": {
+    "total": Any<Number>,
+    "used": Any<Number>,
+  },
+  "status": "ok",
+  "timestamp": Any<String>,
+  "uptime": Any<Number>,
+}
+`;
+
+exports[`Response Snapshots (E2E) Order Response Snapshots should match order creation response structure 1`] = `
+{
+  "data": {
+    "createdAt": Any<String>,
+    "currency": "USD",
+    "id": Any<String>,
+    "idempotencyKey": "order-2025-10-03-b86f6812-fb8aaa86",
+    "items": [
+      {
+        "id": "e62b248d-fd36-4098-a677-08dfa99ead61",
+        "productId": "14afcdb9-e55e-4716-a164-ff1d9fc22433",
+        "productName": "Snapshot Test Product",
+        "quantity": 1,
+        "totalPrice": 99.99,
+        "unitPrice": "99.99",
+      },
+    ],
+    "status": "PENDING",
+    "totalAmount": 99.99,
+    "updatedAt": Any<String>,
+    "userId": Any<String>,
+  },
+  "message": "Accepted",
+  "path": "/orders",
+  "statusCode": 202,
+  "success": true,
+  "timestamp": Any<String>,
+}
+`;
+
+exports[`Response Snapshots (E2E) Order Response Snapshots should match order detail response structure 1`] = `
+{
+  "data": {
+    "createdAt": Any<String>,
+    "currency": "USD",
+    "id": Any<String>,
+    "idempotencyKey": "order-2025-10-03-b86f6812-bfd00957",
+    "items": [
+      {
+        "createdAt": Any<String>,
+        "id": Any<String>,
+        "productId": Any<String>,
+        "productName": "Snapshot Test Product",
+        "quantity": 2,
+        "totalPrice": "199.98",
+        "unitPrice": "99.99",
+        "updatedAt": Any<String>,
+      },
+    ],
+    "status": "PENDING",
+    "totalAmount": "199.98",
+    "updatedAt": Any<String>,
+    "userId": Any<String>,
+  },
+  "message": "Success",
+  "path": "/orders/715f1055-2ae1-4b5f-89ce-55b549b45ae5",
+  "statusCode": 200,
+  "success": true,
+  "timestamp": Any<String>,
+}
+`;
+
+exports[`Response Snapshots (E2E) Pagination Response Snapshots should match pagination metadata structure 1`] = `
+{
+  "meta": {
+    "hasNext": false,
+    "hasPrev": true,
+    "limit": 5,
+    "page": 2,
+    "total": 2,
+    "totalItems": Any<Number>,
+    "totalPages": 1,
+  },
+}
+`;
+
+exports[`Response Snapshots (E2E) Product Response Snapshots should match product creation response structure 1`] = `
+{
+  "data": {
+    "attributes": null,
+    "brand": null,
+    "compareAtPrice": null,
+    "costPrice": null,
+    "createdAt": Any<String>,
+    "deletedAt": null,
+    "description": "Product created for snapshot",
+    "discountPercentage": 0,
+    "id": Any<String>,
+    "images": null,
+    "isActive": true,
+    "isOnSale": false,
+    "minimumStock": 0,
+    "name": "New Snapshot Product",
+    "price": "149.99",
+    "profitMargin": 0,
+    "sku": Any<String>,
+    "tags": null,
+    "trackInventory": true,
+    "updatedAt": Any<String>,
+    "weight": null,
+  },
+  "message": "Created successfully",
+  "path": "/products",
+  "statusCode": 201,
+  "success": true,
+  "timestamp": Any<String>,
+}
+`;
+
+exports[`Response Snapshots (E2E) Product Response Snapshots should match product detail response structure 1`] = `
+{
+  "data": {
+    "attributes": null,
+    "brand": "TestBrand",
+    "compareAtPrice": null,
+    "costPrice": null,
+    "createdAt": Any<String>,
+    "deletedAt": null,
+    "description": "Product for snapshot testing",
+    "discountPercentage": 0,
+    "id": Any<String>,
+    "images": null,
+    "isActive": true,
+    "isOnSale": false,
+    "minimumStock": 0,
+    "name": "Snapshot Test Product",
+    "price": "99.99",
+    "profitMargin": 0,
+    "sku": "TEST-1759531846846",
+    "tags": null,
+    "trackInventory": true,
+    "updatedAt": Any<String>,
+    "weight": "1.500",
+  },
+  "message": "Success",
+  "path": "/products/14afcdb9-e55e-4716-a164-ff1d9fc22433",
+  "statusCode": 200,
+  "success": true,
+  "timestamp": Any<String>,
+}
+`;
+
+exports[`Response Snapshots (E2E) Product Response Snapshots should match product list response structure 1`] = `
+{
+  "data": {
+    "data": [
+      {
+        "attributes": null,
+        "brand": "TestBrand",
+        "compareAtPrice": null,
+        "costPrice": null,
+        "createdAt": Any<String>,
+        "deletedAt": null,
+        "description": "Product for snapshot testing",
+        "discountPercentage": 0,
+        "id": Any<String>,
+        "images": null,
+        "isActive": true,
+        "isOnSale": false,
+        "minimumStock": 0,
+        "name": "Snapshot Test Product",
+        "price": "99.99",
+        "profitMargin": 0,
+        "sku": "TEST-1759531846846",
+        "tags": null,
+        "trackInventory": true,
+        "updatedAt": Any<String>,
+        "weight": "1.500",
+      },
+    ],
+    "meta": {
+      "hasNext": false,
+      "hasPrev": false,
+      "limit": 10,
+      "page": 1,
+      "total": 1,
+      "totalItems": Any<Number>,
+      "totalPages": 1,
+    },
+  },
+  "message": "Success",
+  "path": "/products?page=1&limit=10",
+  "statusCode": 200,
+  "success": true,
+  "timestamp": Any<String>,
+}
+`;
