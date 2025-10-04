@@ -60,8 +60,9 @@ describe('MockPaymentProvider', () => {
       idempotencyKey: 'idem-key-789',
     };
 
-    it('should process payment successfully with valid data', async () => {
-      // Arrange - use valid payment dto
+    it('should process payment successfully with valid data when outcome is success', async () => {
+      // Mock Math.random to force success outcome (< 80)
+      jest.spyOn(Math, 'random').mockReturnValue(0.5); // 0.5 * 100 = 50 < 80 → success
 
       // Act
       const result = await provider.processPayment(validPaymentDto);
@@ -75,8 +76,9 @@ describe('MockPaymentProvider', () => {
       expect(result.currency).toBe('USD');
       expect(result.paymentMethod).toBe(PaymentMethod.CREDIT_CARD);
       expect(result.createdAt).toBeInstanceOf(Date);
-      // Note: Status can be SUCCEEDED or FAILED due to random outcome
-      expect([PaymentStatus.SUCCEEDED, PaymentStatus.FAILED]).toContain(result.status);
+      expect(result.status).toBe(PaymentStatus.SUCCEEDED);
+
+      jest.restoreAllMocks();
     });
 
     it('should generate unique payment IDs for multiple payments', async () => {
