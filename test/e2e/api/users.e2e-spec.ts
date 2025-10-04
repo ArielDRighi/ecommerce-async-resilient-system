@@ -1,6 +1,6 @@
 import { INestApplication, HttpStatus } from '@nestjs/common';
 import request from 'supertest';
-import { TestAppHelper, DatabaseHelper } from '../helpers';
+import { TestAppHelper, DatabaseHelper } from '../../helpers';
 
 /**
  * Users E2E Tests

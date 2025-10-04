@@ -1,6 +1,6 @@
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { TestAppHelper, DatabaseHelper } from '../helpers';
+import { TestAppHelper, DatabaseHelper } from '../../helpers';
 
 /**
  * Authentication E2E Tests

@@ -1,6 +1,6 @@
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { TestAppHelper } from '../helpers';
+import { TestAppHelper } from '../../helpers';
 
 /**
  * Health Check E2E Tests
@@ -126,9 +126,7 @@ describe('Health Check (E2E)', () => {
 
     it('should be publicly accessible without authentication', async () => {
       // No se debe requerir token de autenticación para /metrics
-      const response = await request(app.getHttpServer())
-        .get('/metrics')
-        .expect(200); // No 401 Unauthorized
+      const response = await request(app.getHttpServer()).get('/metrics').expect(200); // No 401 Unauthorized
 
       expect(response.headers['content-type']).toMatch(/text\/plain/);
     });

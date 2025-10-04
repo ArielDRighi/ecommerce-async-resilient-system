@@ -1,7 +1,7 @@
 import { INestApplication, HttpStatus } from '@nestjs/common';
 import request from 'supertest';
-import { TestAppHelper, DatabaseHelper } from '../helpers';
-import { generateTestSKU, generateTestName } from '../helpers/mock-data';
+import { TestAppHelper, DatabaseHelper } from '../../helpers';
+import { generateTestSKU, generateTestName } from '../../helpers/mock-data';
 
 describe('Inventory E2E Tests', () => {
   let app: INestApplication;
