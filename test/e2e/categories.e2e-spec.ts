@@ -379,8 +379,12 @@ describe('Categories E2E Tests', () => {
 
     it('should get tree with only active categories', async () => {
       // Deactivate a category
-      const allCategories = await request(app.getHttpServer()).get('/categories').query({ limit: 100 });
-      const laptopCategory = allCategories.body.data.data.data.find((c: any) => c.slug === 'laptops');
+      const allCategories = await request(app.getHttpServer())
+        .get('/categories')
+        .query({ limit: 100 });
+      const laptopCategory = allCategories.body.data.data.data.find(
+        (c: any) => c.slug === 'laptops',
+      );
 
       await request(app.getHttpServer())
         .patch(`/categories/${laptopCategory.id}/deactivate`)
@@ -552,8 +556,12 @@ describe('Categories E2E Tests', () => {
 
     it('should return empty array when category has no descendants', async () => {
       // Get descendants of Android (leaf node)
-      const allCategories = await request(app.getHttpServer()).get('/categories').query({ limit: 100 });
-      const androidCategory = allCategories.body.data.data.data.find((c: any) => c.slug === 'android');
+      const allCategories = await request(app.getHttpServer())
+        .get('/categories')
+        .query({ limit: 100 });
+      const androidCategory = allCategories.body.data.data.data.find(
+        (c: any) => c.slug === 'android',
+      );
 
       const response = await request(app.getHttpServer())
         .get(`/categories/${androidCategory.id}/descendants`)
