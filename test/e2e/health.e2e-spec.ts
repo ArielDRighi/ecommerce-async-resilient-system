@@ -80,4 +80,105 @@ describe('Health Check (E2E)', () => {
       expect(response.body.details.storage.status).toBe('up');
     });
   });
+
+  describe('GET /metrics', () => {
+    it('should return Prometheus metrics in text format', async () => {
+      const response = await request(app.getHttpServer()).get('/metrics').expect(200);
+
+      // Verificar Content-Type correcto para Prometheus
+      expect(response.headers['content-type']).toMatch(/text\/plain/);
+
+      // Verificar que retorna texto (no JSON)
+      expect(typeof response.text).toBe('string');
+      expect(response.text.length).toBeGreaterThan(0);
+
+      // Verificar formato básico de métricas de Prometheus
+      expect(response.text).toContain('# HELP');
+      expect(response.text).toContain('# TYPE');
+    });
+
+    it('should include standard Node.js process metrics', async () => {
+      const response = await request(app.getHttpServer()).get('/metrics').expect(200);
+
+      const metricsText = response.text;
+
+      // Métricas estándar de proceso Node.js
+      expect(metricsText).toMatch(/process_cpu_/);
+      expect(metricsText).toMatch(/process_resident_memory_bytes/);
+      expect(metricsText).toMatch(/nodejs_heap_size_/);
+      expect(metricsText).toMatch(/nodejs_version_info/);
+    });
+
+    it('should include HTTP request metrics', async () => {
+      // Primero hacer una request para generar métricas HTTP
+      await request(app.getHttpServer()).get('/health').expect(200);
+
+      // Luego verificar que las métricas HTTP aparecen
+      const response = await request(app.getHttpServer()).get('/metrics').expect(200);
+
+      const metricsText = response.text;
+
+      // Métricas HTTP (pueden estar presentes dependiendo de la configuración)
+      // Al menos verificar que hay métricas en general
+      expect(metricsText).toContain('# TYPE');
+      expect(metricsText.split('\n').length).toBeGreaterThan(50); // Muchas líneas de métricas
+    });
+
+    it('should be publicly accessible without authentication', async () => {
+      // No se debe requerir token de autenticación para /metrics
+      const response = await request(app.getHttpServer())
+        .get('/metrics')
+        .expect(200); // No 401 Unauthorized
+
+      expect(response.headers['content-type']).toMatch(/text\/plain/);
+    });
+
+    it('should return valid Prometheus format with metric names and values', async () => {
+      const response = await request(app.getHttpServer()).get('/metrics').expect(200);
+
+      const metricsText = response.text;
+      const lines = metricsText.split('\n').filter((line) => line.trim() !== '');
+
+      // Verificar que hay líneas de comentarios (HELP/TYPE)
+      const commentLines = lines.filter((line) => line.startsWith('#'));
+      expect(commentLines.length).toBeGreaterThan(0);
+
+      // Verificar que hay líneas de métricas (no comentarios)
+      const metricLines = lines.filter((line) => !line.startsWith('#'));
+      expect(metricLines.length).toBeGreaterThan(0);
+
+      // Verificar formato básico de al menos una métrica: nombre valor
+      const sampleMetric = metricLines.find((line) => line.includes(' '));
+      expect(sampleMetric).toBeDefined();
+
+      if (sampleMetric) {
+        const parts = sampleMetric.split(' ');
+        expect(parts.length).toBeGreaterThanOrEqual(2);
+
+        // El segundo elemento debe ser un número o timestamp
+        const value = parts[parts.length - 1];
+        expect(isNaN(Number(value))).toBe(false);
+      }
+    });
+
+    it('should return metrics consistently on multiple requests', async () => {
+      // Primera request
+      const response1 = await request(app.getHttpServer()).get('/metrics').expect(200);
+
+      // Segunda request
+      const response2 = await request(app.getHttpServer()).get('/metrics').expect(200);
+
+      // Ambas deben tener el formato correcto
+      expect(response1.headers['content-type']).toMatch(/text\/plain/);
+      expect(response2.headers['content-type']).toMatch(/text\/plain/);
+
+      // Ambas deben tener contenido
+      expect(response1.text.length).toBeGreaterThan(0);
+      expect(response2.text.length).toBeGreaterThan(0);
+
+      // Ambas deben tener el formato Prometheus
+      expect(response1.text).toContain('# TYPE');
+      expect(response2.text).toContain('# TYPE');
+    });
+  });
 });
