@@ -496,9 +496,10 @@ describe('InventoryController', () => {
     it('should get low stock items with defaults', async () => {
       // Arrange
       service.getInventoryList.mockResolvedValue(mockPaginatedResponse);
+      const queryParams = { page: 1, limit: 20 } as any;
 
       // Act
-      const result = await controller.getLowStockItems();
+      const result = await controller.getLowStockItems(queryParams);
 
       // Assert
       expect(result).toEqual(mockPaginatedResponse);
@@ -513,9 +514,10 @@ describe('InventoryController', () => {
     it('should get low stock items with custom pagination', async () => {
       // Arrange
       service.getInventoryList.mockResolvedValue(mockPaginatedResponse);
+      const queryParams = { page: 2, limit: 50 } as any;
 
       // Act
-      const result = await controller.getLowStockItems(2, 50);
+      const result = await controller.getLowStockItems(queryParams);
 
       // Assert
       expect(result).toBeDefined();
@@ -531,9 +533,10 @@ describe('InventoryController', () => {
       // Arrange
       const location = 'WAREHOUSE_C';
       service.getInventoryList.mockResolvedValue(mockPaginatedResponse);
+      const queryParams = { page: 1, limit: 20, location } as any;
 
       // Act
-      const result = await controller.getLowStockItems(1, 20, location);
+      const result = await controller.getLowStockItems(queryParams);
 
       // Assert
       expect(result).toBeDefined();
@@ -550,9 +553,10 @@ describe('InventoryController', () => {
     it('should get out of stock items with defaults', async () => {
       // Arrange
       service.getInventoryList.mockResolvedValue(mockPaginatedResponse);
+      const queryParams = { page: 1, limit: 20 } as any;
 
       // Act
-      const result = await controller.getOutOfStockItems();
+      const result = await controller.getOutOfStockItems(queryParams);
 
       // Assert
       expect(result).toEqual(mockPaginatedResponse);
@@ -567,9 +571,10 @@ describe('InventoryController', () => {
     it('should get out of stock items with custom pagination', async () => {
       // Arrange
       service.getInventoryList.mockResolvedValue(mockPaginatedResponse);
+      const queryParams = { page: 3, limit: 10 } as any;
 
       // Act
-      const result = await controller.getOutOfStockItems(3, 10);
+      const result = await controller.getOutOfStockItems(queryParams);
 
       // Assert
       expect(result).toBeDefined();
@@ -585,9 +590,10 @@ describe('InventoryController', () => {
       // Arrange
       const location = 'WAREHOUSE_D';
       service.getInventoryList.mockResolvedValue(mockPaginatedResponse);
+      const queryParams = { page: 1, limit: 20, location } as any;
 
       // Act
-      const result = await controller.getOutOfStockItems(1, 20, location);
+      const result = await controller.getOutOfStockItems(queryParams);
 
       // Assert
       expect(result).toBeDefined();
