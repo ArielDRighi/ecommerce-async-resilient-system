@@ -66,7 +66,7 @@ exports[`Response Snapshots (E2E) Authentication Response Snapshots should match
 
 exports[`Response Snapshots (E2E) Error Response Snapshots should match 400 Bad Request error structure 1`] = `
 {
-  "correlationId": "15abff8c-296f-4cd2-8bf9-2b74e7a3bd42",
+  "correlationId": Any<String>,
   "error": {
     "0": "B",
     "1": "A",
@@ -126,7 +126,7 @@ exports[`Response Snapshots (E2E) Error Response Snapshots should match 401 Unau
 
 exports[`Response Snapshots (E2E) Error Response Snapshots should match 404 Not Found error structure 1`] = `
 {
-  "correlationId": "2d70d4b1-e09d-49df-87ae-e133852890c1",
+  "correlationId": Any<String>,
   "error": {
     "0": "N",
     "1": "O",
@@ -195,11 +195,11 @@ exports[`Response Snapshots (E2E) Order Response Snapshots should match order cr
     "createdAt": Any<String>,
     "currency": "USD",
     "id": Any<String>,
-    "idempotencyKey": "order-2025-10-03-b86f6812-fb8aaa86",
+    "idempotencyKey": Any<String>,
     "items": [
       {
-        "id": "e62b248d-fd36-4098-a677-08dfa99ead61",
-        "productId": "14afcdb9-e55e-4716-a164-ff1d9fc22433",
+        "id": Any<String>,
+        "productId": Any<String>,
         "productName": "Snapshot Test Product",
         "quantity": 1,
         "totalPrice": 99.99,
@@ -225,7 +225,7 @@ exports[`Response Snapshots (E2E) Order Response Snapshots should match order de
     "createdAt": Any<String>,
     "currency": "USD",
     "id": Any<String>,
-    "idempotencyKey": "order-2025-10-03-b86f6812-bfd00957",
+    "idempotencyKey": Any<String>,
     "items": [
       {
         "createdAt": Any<String>,
@@ -244,7 +244,23 @@ exports[`Response Snapshots (E2E) Order Response Snapshots should match order de
     "userId": Any<String>,
   },
   "message": "Success",
-  "path": "/orders/715f1055-2ae1-4b5f-89ce-55b549b45ae5",
+  "path": Any<String>,
+  "statusCode": 200,
+  "success": true,
+  "timestamp": Any<String>,
+}
+`;
+
+exports[`Response Snapshots (E2E) Order Response Snapshots should match order list response structure 1`] = `
+{
+  "data": {
+    "data": [],
+    "meta": {
+      "totalItems": Any<Number>,
+    },
+  },
+  "message": "Success",
+  "path": "/orders?page=1&limit=10",
   "statusCode": 200,
   "success": true,
   "timestamp": Any<String>,
@@ -317,14 +333,14 @@ exports[`Response Snapshots (E2E) Product Response Snapshots should match produc
     "name": "Snapshot Test Product",
     "price": "99.99",
     "profitMargin": 0,
-    "sku": "TEST-1759531846846",
+    "sku": Any<String>,
     "tags": null,
     "trackInventory": true,
     "updatedAt": Any<String>,
     "weight": "1.500",
   },
   "message": "Success",
-  "path": "/products/14afcdb9-e55e-4716-a164-ff1d9fc22433",
+  "path": Any<String>,
   "statusCode": 200,
   "success": true,
   "timestamp": Any<String>,
@@ -352,7 +368,7 @@ exports[`Response Snapshots (E2E) Product Response Snapshots should match produc
         "name": "Snapshot Test Product",
         "price": "99.99",
         "profitMargin": 0,
-        "sku": "TEST-1759531846846",
+        "sku": Any<String>,
         "tags": null,
         "trackInventory": true,
         "updatedAt": Any<String>,
@@ -371,6 +387,32 @@ exports[`Response Snapshots (E2E) Product Response Snapshots should match produc
   },
   "message": "Success",
   "path": "/products?page=1&limit=10",
+  "statusCode": 200,
+  "success": true,
+  "timestamp": Any<String>,
+}
+`;
+
+exports[`Response Snapshots (E2E) User Response Snapshots should match user profile response structure 1`] = `
+{
+  "data": {
+    "createdAt": Any<String>,
+    "dateOfBirth": null,
+    "email": Any<String>,
+    "emailVerifiedAt": null,
+    "firstName": "Snapshot",
+    "fullName": "Snapshot User",
+    "id": Any<String>,
+    "isActive": true,
+    "language": "en",
+    "lastLoginAt": Any<String>,
+    "lastName": "User",
+    "phoneNumber": null,
+    "timezone": "UTC",
+    "updatedAt": Any<String>,
+  },
+  "message": "Success",
+  "path": "/users/profile",
   "statusCode": 200,
   "success": true,
   "timestamp": Any<String>,

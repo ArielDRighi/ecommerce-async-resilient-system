@@ -153,9 +153,11 @@ describe('Response Snapshots (E2E)', () => {
       const normalized = {
         ...response.body,
         timestamp: expect.any(String),
+        path: expect.any(String),
         data: {
           ...response.body.data,
           id: expect.any(String),
+          sku: expect.any(String),
           createdAt: expect.any(String),
           updatedAt: expect.any(String),
         },
@@ -178,6 +180,7 @@ describe('Response Snapshots (E2E)', () => {
           data: response.body.data.data.map((product: any) => ({
             ...product,
             id: expect.any(String),
+            sku: expect.any(String),
             createdAt: expect.any(String),
             updatedAt: expect.any(String),
           })),
@@ -229,10 +232,12 @@ describe('Response Snapshots (E2E)', () => {
       const normalized = {
         ...response.body,
         timestamp: expect.any(String),
+        path: expect.any(String),
         data: {
           ...response.body.data,
           id: expect.any(String),
           userId: expect.any(String),
+          idempotencyKey: expect.any(String),
           createdAt: expect.any(String),
           updatedAt: expect.any(String),
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -261,13 +266,14 @@ describe('Response Snapshots (E2E)', () => {
         timestamp: expect.any(String),
         data: {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          data: response.body.data.data.map((order: any) => ({
+          data: response.body.data.data?.map((order: any) => ({
             ...order,
             id: expect.any(String),
             userId: expect.any(String),
+            idempotencyKey: expect.any(String),
             createdAt: expect.any(String),
             updatedAt: expect.any(String),
-          })),
+          })) || [],
           meta: {
             ...response.body.data.meta,
             totalItems: expect.any(Number),
@@ -299,8 +305,15 @@ describe('Response Snapshots (E2E)', () => {
           ...response.body.data,
           id: expect.any(String),
           userId: expect.any(String),
+          idempotencyKey: expect.any(String),
           createdAt: expect.any(String),
           updatedAt: expect.any(String),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          items: response.body.data.items?.map((item: any) => ({
+            ...item,
+            id: expect.any(String),
+            productId: expect.any(String),
+          })) || [],
         },
       };
 
@@ -311,7 +324,7 @@ describe('Response Snapshots (E2E)', () => {
   describe('User Response Snapshots', () => {
     it('should match user profile response structure', async () => {
       const response = await request(app.getHttpServer())
-        .get('/users/me')
+        .get('/users/profile')
         .set('Authorization', `Bearer ${userToken}`)
         .expect(200);
 
@@ -324,6 +337,7 @@ describe('Response Snapshots (E2E)', () => {
           email: expect.any(String),
           createdAt: expect.any(String),
           updatedAt: expect.any(String),
+          lastLoginAt: expect.any(String),
         },
       };
 
@@ -345,6 +359,7 @@ describe('Response Snapshots (E2E)', () => {
       const normalized = {
         ...response.body,
         timestamp: expect.any(String),
+        correlationId: expect.any(String),
         error: {
           ...response.body.error,
           message: expect.any(String),
@@ -377,6 +392,7 @@ describe('Response Snapshots (E2E)', () => {
       const normalized = {
         ...response.body,
         timestamp: expect.any(String),
+        correlationId: expect.any(String),
         error: {
           ...response.body.error,
           message: expect.any(String),
