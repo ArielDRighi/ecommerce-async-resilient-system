@@ -34,13 +34,9 @@ describe('Database Integration (E2E)', () => {
     // Clean up test data after each test
     try {
       // Delete test data in correct order (respecting foreign keys)
-      await dataSource.query('DELETE FROM orders WHERE id LIKE $1', ['00000000%']);
-      await dataSource.query('DELETE FROM products WHERE id LIKE $1', ['00000000%']);
-      await dataSource.query('DELETE FROM users WHERE id LIKE $1 OR id LIKE $2 OR id LIKE $3', [
-        '00000000%',
-        'concurrent-user%',
-        'batch-user%',
-      ]);
+      await dataSource.query("DELETE FROM orders WHERE CAST(id AS TEXT) LIKE '00000000%'");
+      await dataSource.query("DELETE FROM products WHERE CAST(id AS TEXT) LIKE '00000000%'");
+      await dataSource.query("DELETE FROM users WHERE CAST(id AS TEXT) LIKE '00000000%'");
     } catch (error) {
       // Ignore cleanup errors
       if (error instanceof Error) {
@@ -81,7 +77,7 @@ describe('Database Integration (E2E)', () => {
 
       try {
         await queryRunner.manager.query(
-          `INSERT INTO users (id, email, password, "firstName", "lastName") VALUES ($1, $2, $3, $4, $5)`,
+          `INSERT INTO users (id, email, password_hash, first_name, last_name) VALUES ($1, $2, $3, $4, $5)`,
           [
             '00000000-0000-0000-0000-000000000001',
             generateTestEmail(),
@@ -111,7 +107,7 @@ describe('Database Integration (E2E)', () => {
 
       try {
         await queryRunner.manager.query(
-          `INSERT INTO users (id, email, password, "firstName", "lastName") VALUES ($1, $2, $3, $4, $5)`,
+          `INSERT INTO users (id, email, password_hash, first_name, last_name) VALUES ($1, $2, $3, $4, $5)`,
           [
             '00000000-0000-0000-0000-000000000002',
             generateTestEmail(),
@@ -145,7 +141,7 @@ describe('Database Integration (E2E)', () => {
         await queryRunner.startTransaction();
 
         await queryRunner.manager.query(
-          `INSERT INTO users (id, email, password, "firstName", "lastName") VALUES ($1, $2, $3, $4, $5)`,
+          `INSERT INTO users (id, email, password_hash, first_name, last_name) VALUES ($1, $2, $3, $4, $5)`,
           [
             '00000000-0000-0000-0000-000000000003',
             generateTestEmail(),
@@ -196,7 +192,7 @@ describe('Database Integration (E2E)', () => {
       // Try to insert order with non-existent user
       await expect(
         dataSource.query(
-          `INSERT INTO orders (id, "userId", status, "totalAmount") VALUES ($1, $2, $3, $4)`,
+          `INSERT INTO orders (id, user_id, status, total_amount) VALUES ($1, $2, $3, $4)`,
           ['00000000-0000-0000-0000-000000000005', 'non-existent-user-id', 'PENDING', 100],
         ),
       ).rejects.toThrow();
@@ -206,43 +202,40 @@ describe('Database Integration (E2E)', () => {
       const email = generateTestEmail();
 
       await dataSource.query(
-        `INSERT INTO users (id, email, password, "firstName", "lastName") VALUES ($1, $2, $3, $4, $5)`,
+        `INSERT INTO users (id, email, password_hash, first_name, last_name) VALUES ($1, $2, $3, $4, $5)`,
         ['00000000-0000-0000-0000-000000000006', email, 'hashedpassword', 'Unique', 'User'],
       );
 
       // Try to insert duplicate email
       await expect(
         dataSource.query(
-          `INSERT INTO users (id, email, password, "firstName", "lastName") VALUES ($1, $2, $3, $4, $5)`,
+          `INSERT INTO users (id, email, password_hash, first_name, last_name) VALUES ($1, $2, $3, $4, $5)`,
           ['00000000-0000-0000-0000-000000000007', email, 'hashedpassword', 'Duplicate', 'User'],
         ),
       ).rejects.toThrow();
     });
 
-    it('should cascade delete related entities', async () => {
+    it('should enforce foreign key constraints', async () => {
       // Create user and order
       const userId = '00000000-0000-0000-0000-000000000008';
       const orderId = '00000000-0000-0000-0000-000000000009';
 
       await dataSource.query(
-        `INSERT INTO users (id, email, password, "firstName", "lastName") VALUES ($1, $2, $3, $4, $5)`,
-        [userId, generateTestEmail(), 'hashedpassword', 'Cascade', 'User'],
+        `INSERT INTO users (id, email, password_hash, first_name, last_name) VALUES ($1, $2, $3, $4, $5)`,
+        [userId, generateTestEmail(), 'hashedpassword', 'FK', 'User'],
       );
 
       await dataSource.query(
-        `INSERT INTO orders (id, "userId", status, "totalAmount") VALUES ($1, $2, $3, $4)`,
+        `INSERT INTO orders (id, user_id, status, total_amount) VALUES ($1, $2, $3, $4)`,
         [orderId, userId, 'PENDING', 100],
       );
 
-      // Delete user (should cascade to orders if configured)
+      // Try to delete user with existing orders - should fail due to FK constraint
+      await expect(dataSource.query('DELETE FROM users WHERE id = $1', [userId])).rejects.toThrow();
+
+      // Cleanup: Delete in correct order
+      await dataSource.query('DELETE FROM orders WHERE id = $1', [orderId]);
       await dataSource.query('DELETE FROM users WHERE id = $1', [userId]);
-
-      // Verify order handling (depends on cascade configuration)
-      const orders = await dataSource.query('SELECT * FROM orders WHERE id = $1', [orderId]);
-
-      // If cascade delete is configured, order should be deleted
-      // If not, this test documents the behavior
-      expect(orders).toBeDefined();
     });
   });
 
@@ -250,14 +243,20 @@ describe('Database Integration (E2E)', () => {
     it('should handle multiple concurrent queries', async () => {
       const promises = Array.from({ length: 10 }, (_, i) =>
         dataSource.query(
-          `INSERT INTO users (id, email, password, "firstName", "lastName") VALUES ($1, $2, $3, $4, $5)`,
-          [`concurrent-user-${i}`, generateTestEmail(), 'hashedpassword', 'Concurrent', `User${i}`],
+          `INSERT INTO users (id, email, password_hash, first_name, last_name) VALUES ($1, $2, $3, $4, $5)`,
+          [
+            `00000000-0000-0000-000${i}-00000000000${i}`,
+            `concurrent-${Date.now()}-${i}@test.com`,
+            'hashedpassword',
+            'Concurrent',
+            `User${i}`,
+          ],
         ),
       );
 
       await expect(Promise.all(promises)).resolves.toBeDefined();
 
-      const users = await dataSource.query(`SELECT * FROM users WHERE "firstName" = 'Concurrent'`);
+      const users = await dataSource.query(`SELECT * FROM users WHERE first_name = 'Concurrent'`);
       expect(users.length).toBe(10);
     });
   });
@@ -276,15 +275,16 @@ describe('Database Integration (E2E)', () => {
 
     it('should handle batch inserts efficiently', async () => {
       const startTime = Date.now();
+      const timestamp = Date.now();
 
       const values = Array.from(
         { length: 100 },
         (_, i) =>
-          `('batch-user-${i}', '${generateTestEmail()}', 'hashedpassword', 'Batch', 'User${i}')`,
+          `('00000000-0000-0000-${i.toString().padStart(4, '0')}-000000000000', 'batch-${timestamp}-${i}@test.com', 'hashedpassword', 'Batch', 'User${i}')`,
       );
 
       await dataSource.query(
-        `INSERT INTO users (id, email, password, "firstName", "lastName") VALUES ${values.join(', ')}`,
+        `INSERT INTO users (id, email, password_hash, first_name, last_name) VALUES ${values.join(', ')}`,
       );
 
       const executionTime = Date.now() - startTime;
@@ -292,7 +292,7 @@ describe('Database Integration (E2E)', () => {
       // Batch insert should complete in less than 500ms
       expect(executionTime).toBeLessThan(500);
 
-      const users = await dataSource.query(`SELECT * FROM users WHERE "firstName" = 'Batch'`);
+      const users = await dataSource.query(`SELECT * FROM users WHERE first_name = 'Batch'`);
       expect(users.length).toBe(100);
     });
   });
