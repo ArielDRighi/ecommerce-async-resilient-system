@@ -44,6 +44,14 @@ export class OrderProcessingProcessor extends BaseProcessor<OrderProcessingJobDa
   }
 
   /**
+   * Process order (generic handler)
+   */
+  @Process('process-order')
+  async handleProcessOrder(job: Job<OrderProcessingJobData>): Promise<JobResult> {
+    return this.handleJob(job);
+  }
+
+  /**
    * Main processing logic for order jobs using Saga Pattern
    */
   protected async processJob(
