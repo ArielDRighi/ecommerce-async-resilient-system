@@ -3,6 +3,13 @@
  * Runs once before all test suites
  */
 
+// Polyfill for crypto in Node 18+ for @nestjs/schedule
+import { webcrypto } from 'crypto';
+if (!globalThis.crypto) {
+  // @ts-expect-error - polyfill for Node 18 compatibility
+  globalThis.crypto = webcrypto;
+}
+
 export default async () => {
   // Set test environment
   process.env['NODE_ENV'] = 'test';
