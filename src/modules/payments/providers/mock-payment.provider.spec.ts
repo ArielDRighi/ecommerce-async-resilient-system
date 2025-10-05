@@ -328,117 +328,80 @@ describe('MockPaymentProvider', () => {
     });
 
     it('should include processedAt timestamp for successful payments', async () => {
-      // Arrange & Act
-      let successfulPayment = null;
-      let attempts = 0;
+      // Arrange: Stub Math.random to always succeed (0.5 * 100 = 50 < 80)
+      const randomSpy = jest.spyOn(Math, 'random').mockReturnValue(0.5); // Value that guarantees success
 
-      while (!successfulPayment && attempts < 30) {
-        try {
-          const result = await provider.processPayment({
-            ...validPaymentDto,
-            idempotencyKey: `key-processed-${attempts}`,
-            orderId: `order-processed-${attempts}`,
-          });
-
-          if (result.status === PaymentStatus.SUCCEEDED) {
-            successfulPayment = result;
-          }
-        } catch (error) {
-          // Continue trying
-        }
-        attempts++;
-      }
+      // Act
+      const result = await provider.processPayment({
+        ...validPaymentDto,
+        idempotencyKey: `key-processed-deterministic`,
+        orderId: `order-processed-deterministic`,
+      });
 
       // Assert
-      if (successfulPayment) {
-        expect(successfulPayment.processedAt).toBeDefined();
-        expect(successfulPayment.processedAt).toBeInstanceOf(Date);
-      } else {
-        // If we couldn't get a successful payment, test passes
-        expect(true).toBe(true);
-      }
+      expect(result.status).toBe(PaymentStatus.SUCCEEDED);
+      expect(result.processedAt).toBeDefined();
+      expect(result.processedAt).toBeInstanceOf(Date);
+
+      randomSpy.mockRestore();
     });
 
     it('should include failure reason and code for failed payments', async () => {
-      // Arrange & Act
-      let failedPayment = null;
-      let attempts = 0;
+      // Arrange: Stub Math.random to always fail with permanent error (0.99 * 100 = 99 >= 95)
+      const randomSpy = jest.spyOn(Math, 'random').mockReturnValue(0.99); // Value that guarantees permanent failure
 
-      while (!failedPayment && attempts < 50) {
-        try {
-          await provider.processPayment({
-            ...validPaymentDto,
-            idempotencyKey: `key-failed-${attempts}`,
-            orderId: `order-failed-${attempts}`,
-          });
-        } catch (error: any) {
-          // Check if it's a permanent failure (BadRequestException with retriable: false)
-          if (error instanceof BadRequestException && error.getResponse) {
-            const response: any = error.getResponse();
-            if (response.code && response.retriable === false) {
-              // This is a permanent failure, get the payment from storage
-              try {
-                const stats = provider.getStats();
-                if (stats.failedPayments > 0) {
-                  failedPayment = { error, response };
-                }
-              } catch {
-                // Continue
-              }
-            }
-          }
+      // Act
+      let response: any;
+      try {
+        await provider.processPayment({
+          ...validPaymentDto,
+          idempotencyKey: `key-failed-deterministic`,
+          orderId: `order-failed-deterministic`,
+        });
+      } catch (err: any) {
+        if (err instanceof BadRequestException && err.getResponse) {
+          response = err.getResponse();
         }
-        attempts++;
       }
 
       // Assert
-      if (failedPayment) {
-        expect(failedPayment.response.code).toBeDefined();
-        expect(failedPayment.response.message).toBeDefined();
-        expect(failedPayment.response.retriable).toBe(false);
-      } else {
-        // Test passes if we couldn't trigger a permanent failure
-        expect(true).toBe(true);
-      }
+      expect(response).toBeDefined();
+      expect(response.code).toBeDefined();
+      expect(response.message).toBeDefined();
+      expect(response.retriable).toBe(false);
+
+      randomSpy.mockRestore();
     });
   });
 
   describe('getPaymentStatus', () => {
     it('should retrieve payment status for existing payment', async () => {
-      // Arrange
-      let paymentId: string | null = null;
-      let attempts = 0;
+      // Arrange: Mock randomness - first call determines success (0.5 * 100 = 50 < 80), others for IDs
+      let callCount = 0;
+      const randomSpy = jest.spyOn(Math, 'random').mockImplementation(() => {
+        if (callCount++ === 0) return 0.5; // Success determination
+        return 0.123456789 + callCount * 0.001; // Fixed random for IDs and other purposes
+      });
 
-      while (!paymentId && attempts < 30) {
-        try {
-          const payment = await provider.processPayment({
-            orderId: `order-status-${attempts}`,
-            amount: 50,
-            currency: 'USD',
-            paymentMethod: PaymentMethod.CREDIT_CARD,
-            idempotencyKey: `key-status-${attempts}`,
-          });
-          if (payment.status === PaymentStatus.SUCCEEDED) {
-            paymentId = payment.paymentId;
-          }
-        } catch (error) {
-          // Continue trying
-        }
-        attempts++;
-      }
+      const payment = await provider.processPayment({
+        orderId: `order-status-deterministic`,
+        amount: 50,
+        currency: 'USD',
+        paymentMethod: PaymentMethod.CREDIT_CARD,
+        idempotencyKey: `key-status-deterministic`,
+      });
+      const paymentId = payment.paymentId;
 
-      if (paymentId) {
-        // Act
-        const status = await provider.getPaymentStatus(paymentId);
+      // Act
+      const status = await provider.getPaymentStatus(paymentId);
 
-        // Assert
-        expect(status).toBeDefined();
-        expect(status.paymentId).toBe(paymentId);
-        expect(status.status).toBe(PaymentStatus.SUCCEEDED);
-        expect(status.amount).toBe(50);
-      } else {
-        expect(true).toBe(true);
-      }
+      // Assert
+      expect(status).toBeDefined();
+      expect(status.paymentId).toBe(paymentId);
+      expect(status.status).toBe(PaymentStatus.SUCCEEDED);
+      expect(status.amount).toBe(50);
+
+      randomSpy.mockRestore();
     });
 
     it('should throw exception for non-existent payment', async () => {
@@ -451,178 +414,135 @@ describe('MockPaymentProvider', () => {
     });
 
     it('should retrieve failed payment status', async () => {
-      // Arrange
-      let failedPaymentId: string | null = null;
-      let attempts = 0;
+      // Arrange: Mock randomness to always fail (0.99 * 100 = 99 >= 95 = permanent failure)
+      const randomSpy = jest.spyOn(Math, 'random').mockReturnValue(0.99);
 
-      while (!failedPaymentId && attempts < 100) {
-        try {
-          await provider.processPayment({
-            orderId: `order-failed-status-${attempts}`,
-            amount: 75,
-            currency: 'USD',
-            paymentMethod: PaymentMethod.CREDIT_CARD,
-            idempotencyKey: `key-failed-status-${attempts}`,
-          });
-        } catch (error: any) {
-          // Check if payment was stored (permanent failure)
-          const stats = provider.getStats();
-          if (stats.failedPayments > 0 && stats.totalPayments > 0) {
-            // Get the last failed payment ID from stats
-            // We'll need to track this differently
-            failedPaymentId = 'tracked-via-exception';
-            break;
-          }
-        }
-        attempts++;
+      // Act
+      try {
+        await provider.processPayment({
+          orderId: `order-failed-status-deterministic`,
+          amount: 75,
+          currency: 'USD',
+          paymentMethod: PaymentMethod.CREDIT_CARD,
+          idempotencyKey: `key-failed-status-deterministic`,
+        });
+      } catch (error: any) {
+        // Check if payment failure was tracked
+        const stats = provider.getStats();
+        expect(stats.failedPayments).toBeGreaterThan(0);
+        expect(stats.totalPayments).toBeGreaterThan(0);
       }
 
-      // Assert - test passes if we detected a failed payment
-      expect(attempts).toBeLessThan(100);
+      randomSpy.mockRestore();
     });
   });
 
   describe('refundPayment', () => {
     it('should successfully refund a successful payment (full refund)', async () => {
-      // Arrange - First create a successful payment
-      let successfulPayment = null;
-      let attempts = 0;
+      // Arrange: Mock randomness - first call determines success
+      let callCount = 0;
+      const randomSpy = jest.spyOn(Math, 'random').mockImplementation(() => {
+        if (callCount++ === 0) return 0.5; // Success determination
+        return 0.123456789 + callCount * 0.001; // Fixed random for IDs
+      });
 
-      while (!successfulPayment && attempts < 30) {
-        try {
-          const payment = await provider.processPayment({
-            orderId: `order-refund-${attempts}`,
-            amount: 100,
-            currency: 'USD',
-            paymentMethod: PaymentMethod.CREDIT_CARD,
-            idempotencyKey: `key-refund-${attempts}`,
-          });
-          if (payment.status === PaymentStatus.SUCCEEDED) {
-            successfulPayment = payment;
-          }
-        } catch {
-          // Continue
-        }
-        attempts++;
-      }
+      const payment = await provider.processPayment({
+        orderId: `order-refund-deterministic`,
+        amount: 100,
+        currency: 'USD',
+        paymentMethod: PaymentMethod.CREDIT_CARD,
+        idempotencyKey: `key-refund-deterministic`,
+      });
 
-      if (successfulPayment) {
-        // Act
-        const refund = await provider.refundPayment({
-          paymentId: successfulPayment.paymentId,
-          amount: 100,
-          reason: 'Customer requested full refund',
-        });
+      // Act
+      const refund = await provider.refundPayment({
+        paymentId: payment.paymentId,
+        amount: 100,
+        reason: 'Customer requested full refund',
+      });
 
-        // Assert
-        expect(refund).toBeDefined();
-        expect(refund.refundId).toBeDefined();
-        expect(refund.paymentId).toBe(successfulPayment.paymentId);
-        expect(refund.amount).toBe(100);
-        expect(refund.status).toBe(PaymentStatus.REFUNDED);
-        expect(refund.reason).toBe('Customer requested full refund');
+      // Assert
+      expect(refund).toBeDefined();
+      expect(refund.refundId).toBeDefined();
+      expect(refund.paymentId).toBe(payment.paymentId);
+      expect(refund.amount).toBe(100);
+      expect(refund.status).toBe(PaymentStatus.REFUNDED);
+      expect(refund.reason).toBe('Customer requested full refund');
 
-        // Verify payment status updated to REFUNDED
-        const updatedPayment = await provider.getPaymentStatus(successfulPayment.paymentId);
-        expect(updatedPayment.status).toBe(PaymentStatus.REFUNDED);
-      } else {
-        expect(true).toBe(true);
-      }
+      // Verify payment status updated to REFUNDED
+      const updatedPayment = await provider.getPaymentStatus(payment.paymentId);
+      expect(updatedPayment.status).toBe(PaymentStatus.REFUNDED);
+
+      randomSpy.mockRestore();
     });
 
     it('should successfully process partial refund', async () => {
-      // Arrange
-      let successfulPayment = null;
-      let attempts = 0;
+      // Arrange: Mock randomness to always succeed (0.3 * 100 = 30 < 80)
+      const randomSpy = jest.spyOn(Math, 'random').mockReturnValue(0.3);
 
-      while (!successfulPayment && attempts < 30) {
-        try {
-          const payment = await provider.processPayment({
-            orderId: `order-partial-${attempts}`,
-            amount: 200,
-            currency: 'USD',
-            paymentMethod: PaymentMethod.DIGITAL_WALLET,
-            idempotencyKey: `key-partial-${attempts}`,
-          });
-          if (payment.status === PaymentStatus.SUCCEEDED) {
-            successfulPayment = payment;
-          }
-        } catch {
-          // Continue
-        }
-        attempts++;
-      }
+      const payment = await provider.processPayment({
+        orderId: `order-partial-deterministic`,
+        amount: 200,
+        currency: 'USD',
+        paymentMethod: PaymentMethod.DIGITAL_WALLET,
+        idempotencyKey: `key-partial-deterministic`,
+      });
 
-      if (successfulPayment) {
-        // Act - Refund 50 out of 200
-        const refund = await provider.refundPayment({
-          paymentId: successfulPayment.paymentId,
-          amount: 50,
-          reason: 'Partial refund',
-        });
+      // Act - Refund 50 out of 200
+      const refund = await provider.refundPayment({
+        paymentId: payment.paymentId,
+        amount: 50,
+        reason: 'Partial refund',
+      });
 
-        // Assert
-        expect(refund.amount).toBe(50);
-        expect(refund.status).toBe(PaymentStatus.REFUNDED);
+      // Assert
+      expect(refund.amount).toBe(50);
+      expect(refund.status).toBe(PaymentStatus.REFUNDED);
 
-        // Verify payment status updated to PARTIALLY_REFUNDED
-        const updatedPayment = await provider.getPaymentStatus(successfulPayment.paymentId);
-        expect(updatedPayment.status).toBe(PaymentStatus.PARTIALLY_REFUNDED);
-      } else {
-        expect(true).toBe(true);
-      }
+      // Verify payment status updated to PARTIALLY_REFUNDED
+      const updatedPayment = await provider.getPaymentStatus(payment.paymentId);
+      expect(updatedPayment.status).toBe(PaymentStatus.PARTIALLY_REFUNDED);
+
+      randomSpy.mockRestore();
     });
 
     it('should handle multiple partial refunds', async () => {
-      // Arrange
-      let successfulPayment = null;
-      let attempts = 0;
+      // Arrange: Mock randomness to always succeed (0.3 * 100 = 30 < 80)
+      const randomSpy = jest.spyOn(Math, 'random').mockReturnValue(0.3);
 
-      while (!successfulPayment && attempts < 30) {
-        try {
-          const payment = await provider.processPayment({
-            orderId: `order-multi-refund-${attempts}`,
-            amount: 300,
-            currency: 'USD',
-            paymentMethod: PaymentMethod.CREDIT_CARD,
-            idempotencyKey: `key-multi-refund-${attempts}`,
-          });
-          if (payment.status === PaymentStatus.SUCCEEDED) {
-            successfulPayment = payment;
-          }
-        } catch {
-          // Continue
-        }
-        attempts++;
-      }
+      const payment = await provider.processPayment({
+        orderId: `order-multi-refund-deterministic`,
+        amount: 300,
+        currency: 'USD',
+        paymentMethod: PaymentMethod.CREDIT_CARD,
+        idempotencyKey: `key-multi-refund-deterministic`,
+      });
 
-      if (successfulPayment) {
-        // Act - Refund in 3 parts: 100, 100, 100
-        const refund1 = await provider.refundPayment({
-          paymentId: successfulPayment.paymentId,
-          amount: 100,
-        });
-        const refund2 = await provider.refundPayment({
-          paymentId: successfulPayment.paymentId,
-          amount: 100,
-        });
-        const refund3 = await provider.refundPayment({
-          paymentId: successfulPayment.paymentId,
-          amount: 100,
-        });
+      // Act - Refund in 3 parts: 100, 100, 100
+      const refund1 = await provider.refundPayment({
+        paymentId: payment.paymentId,
+        amount: 100,
+      });
+      const refund2 = await provider.refundPayment({
+        paymentId: payment.paymentId,
+        amount: 100,
+      });
+      const refund3 = await provider.refundPayment({
+        paymentId: payment.paymentId,
+        amount: 100,
+      });
 
-        // Assert
-        expect(refund1.refundId).toBeDefined();
-        expect(refund2.refundId).toBeDefined();
-        expect(refund3.refundId).toBeDefined();
-        expect(refund1.refundId).not.toBe(refund2.refundId);
+      // Assert
+      expect(refund1.refundId).toBeDefined();
+      expect(refund2.refundId).toBeDefined();
+      expect(refund3.refundId).toBeDefined();
+      expect(refund1.refundId).not.toBe(refund2.refundId);
 
-        // After all 3 refunds, payment should be fully REFUNDED
-        const updatedPayment = await provider.getPaymentStatus(successfulPayment.paymentId);
-        expect(updatedPayment.status).toBe(PaymentStatus.REFUNDED);
-      } else {
-        expect(true).toBe(true);
-      }
+      // After all 3 refunds, payment should be fully REFUNDED
+      const updatedPayment = await provider.getPaymentStatus(payment.paymentId);
+      expect(updatedPayment.status).toBe(PaymentStatus.REFUNDED);
+
+      randomSpy.mockRestore();
     });
 
     it('should reject refund for non-existent payment', async () => {
@@ -638,131 +558,92 @@ describe('MockPaymentProvider', () => {
     });
 
     it('should reject refund amount exceeding payment amount', async () => {
-      // Arrange
-      let successfulPayment = null;
-      let attempts = 0;
+      // Arrange: Mock randomness to always succeed (0.3 * 100 = 30 < 80)
+      const randomSpy = jest.spyOn(Math, 'random').mockReturnValue(0.3);
 
-      while (!successfulPayment && attempts < 30) {
-        try {
-          const payment = await provider.processPayment({
-            orderId: `order-exceed-${attempts}`,
-            amount: 100,
-            currency: 'USD',
-            paymentMethod: PaymentMethod.CREDIT_CARD,
-            idempotencyKey: `key-exceed-${attempts}`,
-          });
-          if (payment.status === PaymentStatus.SUCCEEDED) {
-            successfulPayment = payment;
-          }
-        } catch {
-          // Continue
-        }
-        attempts++;
-      }
+      const payment = await provider.processPayment({
+        orderId: `order-exceed-deterministic`,
+        amount: 100,
+        currency: 'USD',
+        paymentMethod: PaymentMethod.CREDIT_CARD,
+        idempotencyKey: `key-exceed-deterministic`,
+      });
 
-      if (successfulPayment) {
-        // Act & Assert
-        await expect(
-          provider.refundPayment({
-            paymentId: successfulPayment.paymentId,
-            amount: 150, // More than original 100
-          }),
-        ).rejects.toThrow(BadRequestException);
-        await expect(
-          provider.refundPayment({
-            paymentId: successfulPayment.paymentId,
-            amount: 150,
-          }),
-        ).rejects.toThrow('exceeds available amount');
-      } else {
-        expect(true).toBe(true);
-      }
+      // Act & Assert
+      await expect(
+        provider.refundPayment({
+          paymentId: payment.paymentId,
+          amount: 150, // More than original 100
+        }),
+      ).rejects.toThrow(BadRequestException);
+      await expect(
+        provider.refundPayment({
+          paymentId: payment.paymentId,
+          amount: 150,
+        }),
+      ).rejects.toThrow('exceeds available');
+
+      randomSpy.mockRestore();
     });
 
     it('should reject refund amount exceeding remaining balance after partial refund', async () => {
-      // Arrange
-      let successfulPayment = null;
-      let attempts = 0;
+      // Arrange: Mock randomness to always succeed (0.3 * 100 = 30 < 80)
+      const randomSpy = jest.spyOn(Math, 'random').mockReturnValue(0.3);
 
-      while (!successfulPayment && attempts < 30) {
-        try {
-          const payment = await provider.processPayment({
-            orderId: `order-remaining-${attempts}`,
-            amount: 100,
-            currency: 'USD',
-            paymentMethod: PaymentMethod.CREDIT_CARD,
-            idempotencyKey: `key-remaining-${attempts}`,
-          });
-          if (payment.status === PaymentStatus.SUCCEEDED) {
-            successfulPayment = payment;
-          }
-        } catch {
-          // Continue
-        }
-        attempts++;
-      }
+      const payment = await provider.processPayment({
+        orderId: `order-remaining-deterministic`,
+        amount: 100,
+        currency: 'USD',
+        paymentMethod: PaymentMethod.CREDIT_CARD,
+        idempotencyKey: `key-remaining-deterministic`,
+      });
 
-      if (successfulPayment) {
-        // First refund 60
-        await provider.refundPayment({
-          paymentId: successfulPayment.paymentId,
-          amount: 60,
-        });
+      // First refund 60
+      await provider.refundPayment({
+        paymentId: payment.paymentId,
+        amount: 60,
+      });
 
-        // Act & Assert - Try to refund 50 (but only 40 remaining)
-        await expect(
-          provider.refundPayment({
-            paymentId: successfulPayment.paymentId,
-            amount: 50,
-          }),
-        ).rejects.toThrow(BadRequestException);
-        await expect(
-          provider.refundPayment({
-            paymentId: successfulPayment.paymentId,
-            amount: 50,
-          }),
-        ).rejects.toThrow('exceeds available amount');
-      } else {
-        expect(true).toBe(true);
-      }
+      // Act & Assert - Try to refund 50 (but only 40 remaining)
+      await expect(
+        provider.refundPayment({
+          paymentId: payment.paymentId,
+          amount: 50,
+        }),
+      ).rejects.toThrow(BadRequestException);
+      await expect(
+        provider.refundPayment({
+          paymentId: payment.paymentId,
+          amount: 50,
+        }),
+      ).rejects.toThrow('exceeds available amount');
+
+      randomSpy.mockRestore();
     });
 
     it('should use default reason when none provided', async () => {
-      // Arrange
-      let successfulPayment = null;
-      let attempts = 0;
+      // Arrange: Mock randomness to always succeed (0.3 * 100 = 30 < 80)
+      const randomSpy = jest.spyOn(Math, 'random').mockReturnValue(0.3);
 
-      while (!successfulPayment && attempts < 30) {
-        try {
-          const payment = await provider.processPayment({
-            orderId: `order-default-reason-${attempts}`,
-            amount: 80,
-            currency: 'USD',
-            paymentMethod: PaymentMethod.CREDIT_CARD,
-            idempotencyKey: `key-default-reason-${attempts}`,
-          });
-          if (payment.status === PaymentStatus.SUCCEEDED) {
-            successfulPayment = payment;
-          }
-        } catch {
-          // Continue
-        }
-        attempts++;
-      }
+      const payment = await provider.processPayment({
+        orderId: `order-default-reason-deterministic`,
+        amount: 80,
+        currency: 'USD',
+        paymentMethod: PaymentMethod.CREDIT_CARD,
+        idempotencyKey: `key-default-reason-deterministic`,
+      });
 
-      if (successfulPayment) {
-        // Act
-        const refund = await provider.refundPayment({
-          paymentId: successfulPayment.paymentId,
-          amount: 80,
-          // No reason provided
-        });
+      // Act
+      const refund = await provider.refundPayment({
+        paymentId: payment.paymentId,
+        amount: 80,
+        // No reason provided
+      });
 
-        // Assert
-        expect(refund.reason).toBe('Customer requested refund');
-      } else {
-        expect(true).toBe(true);
-      }
+      // Assert
+      expect(refund.reason).toBe('Customer requested refund');
+
+      randomSpy.mockRestore();
     });
   });
 
@@ -848,78 +729,62 @@ describe('MockPaymentProvider', () => {
     });
 
     it('should track refunds in statistics', async () => {
-      // Arrange - Create successful payment and refund
-      let successfulPayment = null;
-      let attempts = 0;
+      // Arrange: Mock randomness to always succeed (0.3 * 100 = 30 < 80)
+      const randomSpy = jest.spyOn(Math, 'random').mockReturnValue(0.3);
 
-      while (!successfulPayment && attempts < 30) {
-        try {
-          const payment = await provider.processPayment({
-            orderId: `order-stats-refund-${attempts}`,
-            amount: 150,
-            currency: 'USD',
-            paymentMethod: PaymentMethod.CREDIT_CARD,
-            idempotencyKey: `key-stats-refund-${attempts}`,
-          });
-          if (payment.status === PaymentStatus.SUCCEEDED) {
-            successfulPayment = payment;
-          }
-        } catch {
-          // Continue
-        }
-        attempts++;
-      }
+      const payment = await provider.processPayment({
+        orderId: `order-stats-refund-deterministic`,
+        amount: 150,
+        currency: 'USD',
+        paymentMethod: PaymentMethod.CREDIT_CARD,
+        idempotencyKey: `key-stats-refund-deterministic`,
+      });
 
-      if (successfulPayment) {
-        await provider.refundPayment({
-          paymentId: successfulPayment.paymentId,
-          amount: 150,
-        });
+      await provider.refundPayment({
+        paymentId: payment.paymentId,
+        amount: 150,
+      });
 
-        // Act
-        const stats = provider.getStats();
+      // Act
+      const stats = provider.getStats();
 
-        // Assert
-        expect(stats.totalRefunds).toBeGreaterThan(0);
-        expect(stats.refundedPayments).toBeGreaterThan(0);
-        expect(stats.totalRefundedAmount).toBeGreaterThanOrEqual(150);
-      } else {
-        expect(true).toBe(true);
-      }
+      // Assert
+      expect(stats.totalRefunds).toBeGreaterThan(0);
+      expect(stats.refundedPayments).toBeGreaterThan(0);
+      expect(stats.totalRefundedAmount).toBeGreaterThanOrEqual(150);
+
+      randomSpy.mockRestore();
     });
 
     it('should calculate total amount correctly', async () => {
-      // Arrange - Create multiple successful payments
-      const successfulPayments: any[] = [];
-      let attempts = 0;
+      // Arrange: Mock randomness to always succeed
+      const randomSpy = jest.spyOn(Math, 'random').mockReturnValue(0.5);
 
-      while (successfulPayments.length < 2 && attempts < 50) {
-        try {
-          const payment = await provider.processPayment({
-            orderId: `order-amount-${attempts}`,
-            amount: 50,
-            currency: 'USD',
-            paymentMethod: PaymentMethod.CREDIT_CARD,
-            idempotencyKey: `key-amount-${attempts}`,
-          });
-          if (payment.status === PaymentStatus.SUCCEEDED) {
-            successfulPayments.push(payment);
-          }
-        } catch {
-          // Continue
-        }
-        attempts++;
-      }
+      // Create 2 successful payments
+      const payment1 = await provider.processPayment({
+        orderId: `order-amount-1`,
+        amount: 50,
+        currency: 'USD',
+        paymentMethod: PaymentMethod.CREDIT_CARD,
+        idempotencyKey: `key-amount-1`,
+      });
+      const payment2 = await provider.processPayment({
+        orderId: `order-amount-2`,
+        amount: 50,
+        currency: 'USD',
+        paymentMethod: PaymentMethod.CREDIT_CARD,
+        idempotencyKey: `key-amount-2`,
+      });
 
-      if (successfulPayments.length >= 2) {
-        // Act
-        const stats = provider.getStats();
+      // Act
+      const stats = provider.getStats();
 
-        // Assert
-        expect(stats.totalAmount).toBeGreaterThanOrEqual(100); // At least 2 x 50
-      } else {
-        expect(true).toBe(true);
-      }
+      // Assert
+      expect(stats.totalAmount).toBeGreaterThanOrEqual(100); // At least 2 x 50
+      expect(payment1).toBeDefined();
+      expect(payment2).toBeDefined();
+
+      randomSpy.mockRestore();
     });
   });
 

@@ -264,7 +264,7 @@ export class InventoryController {
     type: PaginatedResponseDto<InventoryResponseDto>,
   })
   async getInventoryList(
-    @Query(ValidationPipe) queryDto: InventoryQueryDto,
+    @Query(new ValidationPipe({ transform: true })) queryDto: InventoryQueryDto,
   ): Promise<PaginatedResponseDto<InventoryResponseDto>> {
     this.logger.log(`Getting inventory list with filters: ${JSON.stringify(queryDto)}`);
     return await this.inventoryService.getInventoryList(queryDto);
@@ -296,7 +296,7 @@ export class InventoryController {
     type: PaginatedResponseDto<InventoryResponseDto>,
   })
   async getLowStockItems(
-    @Query(ValidationPipe) queryParams: InventoryQueryDto,
+    @Query(new ValidationPipe({ transform: true })) queryParams: InventoryQueryDto,
   ): Promise<PaginatedResponseDto<InventoryResponseDto>> {
     const queryDto: InventoryQueryDto = {
       ...queryParams,
@@ -333,7 +333,7 @@ export class InventoryController {
     type: PaginatedResponseDto<InventoryResponseDto>,
   })
   async getOutOfStockItems(
-    @Query(ValidationPipe) queryParams: InventoryQueryDto,
+    @Query(new ValidationPipe({ transform: true })) queryParams: InventoryQueryDto,
   ): Promise<PaginatedResponseDto<InventoryResponseDto>> {
     const queryDto: InventoryQueryDto = {
       ...queryParams,
