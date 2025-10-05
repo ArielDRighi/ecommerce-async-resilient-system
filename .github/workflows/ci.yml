@@ -118,8 +118,9 @@ jobs:
           DATABASE_HOST: localhost
           DATABASE_PORT: 5432
           DATABASE_NAME: test_db
-          DATABASE_USER: test_user
+          DATABASE_USERNAME: test_user
           DATABASE_PASSWORD: test_password
+          DATABASE_USER: test_user
           REDIS_HOST: localhost
           REDIS_PORT: 6379
           JWT_SECRET: test-jwt-secret-key-for-testing
@@ -131,8 +132,9 @@ jobs:
           DATABASE_HOST: localhost
           DATABASE_PORT: 5432
           DATABASE_NAME: test_db
-          DATABASE_USER: test_user
+          DATABASE_USERNAME: test_user
           DATABASE_PASSWORD: test_password
+          DATABASE_USER: test_user
           REDIS_HOST: localhost
           REDIS_PORT: 6379
           JWT_SECRET: test-jwt-secret-key-for-testing
@@ -144,8 +146,9 @@ jobs:
           DATABASE_HOST: localhost
           DATABASE_PORT: 5432
           DATABASE_NAME: test_db
-          DATABASE_USER: test_user
+          DATABASE_USERNAME: test_user
           DATABASE_PASSWORD: test_password
+          DATABASE_USER: test_user
           REDIS_HOST: localhost
           REDIS_PORT: 6379
           JWT_SECRET: test-jwt-secret-key-for-testing
@@ -195,6 +198,32 @@ jobs:
     name: Quality Gate
     runs-on: ubuntu-latest
     needs: [test, build]
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_USER: test_user
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -207,14 +236,23 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+      
+      - name: Wait for PostgreSQL
+        run: |
+          timeout 30s bash -c 'until nc -z localhost 5432; do sleep 1; done'
+
+      - name: Wait for Redis
+        run: |
+          timeout 30s bash -c 'until nc -z localhost 6379; do sleep 1; done'
 
       - name: Check test coverage threshold
         env:
           DATABASE_HOST: localhost
           DATABASE_PORT: 5432
           DATABASE_NAME: test_db
-          DATABASE_USER: test_user
+          DATABASE_USERNAME: test_user
           DATABASE_PASSWORD: test_password
+          DATABASE_USER: test_user
           REDIS_HOST: localhost
           REDIS_PORT: 6379
           JWT_SECRET: test-jwt-secret-key-for-testing
