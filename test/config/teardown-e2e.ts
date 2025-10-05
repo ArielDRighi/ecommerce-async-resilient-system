@@ -4,9 +4,9 @@
  */
 
 export default async () => {
-  // Wait for any pending async operations (sagas, jobs, etc) to complete
-  // This prevents "Driver not Connected" errors from background processes
-  await new Promise((resolve) => setTimeout(resolve, 3000));
+  // Small safety delay for any remaining background operations
+  // Most tests should use QueueService.waitForActiveJobs() in their afterAll hooks
+  await new Promise((resolve) => setTimeout(resolve, 1000));
 
   // eslint-disable-next-line no-console
   console.log('\n✅ E2E Test Suite - Global Teardown');

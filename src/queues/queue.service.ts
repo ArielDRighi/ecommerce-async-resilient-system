@@ -231,6 +231,30 @@ export class QueueService implements OnModuleInit {
   }
 
   /**
+   * Wait for all active jobs to complete without closing queues
+   * Useful for E2E tests to prevent database errors
+   */
+  async waitForActiveJobs(timeout: number = 10000): Promise<void> {
+    const queues = this.getAllQueues();
+    const startTime = Date.now();
+
+    while (Date.now() - startTime < timeout) {
+      const activeJobs = await Promise.all(queues.map(({ queue }) => queue.getActiveCount()));
+      const totalActive = activeJobs.reduce((sum, count) => sum + count, 0);
+
+      if (totalActive === 0) {
+        this.logger.debug('All active jobs completed');
+        return;
+      }
+
+      this.logger.debug(`Waiting for ${totalActive} active jobs to complete...`);
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+
+    this.logger.warn(`Timeout waiting for active jobs after ${timeout}ms`);
+  }
+
+  /**
    * Graceful shutdown - wait for active jobs to complete
    */
   async gracefulShutdown(timeout: number = 30000): Promise<void> {
