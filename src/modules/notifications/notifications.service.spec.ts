@@ -114,6 +114,9 @@ describe('NotificationsService', () => {
 
   describe('sendPaymentFailure', () => {
     it('should send payment failure notification', async () => {
+      // Mock Math.random to ensure success (EmailProvider has 5% failure rate)
+      jest.spyOn(Math, 'random').mockReturnValue(0.1); // < 0.95 = success
+
       const dto: SendPaymentFailureDto = {
         orderId: 'order-123',
         orderNumber: 'ORD-2024-001',
