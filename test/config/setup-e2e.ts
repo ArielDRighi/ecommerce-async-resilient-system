@@ -21,8 +21,7 @@ export default async () => {
   // Redis de testing (usar instancia de desarrollo)
   const redisHost = process.env['REDIS_HOST'] || 'localhost';
   const redisPort = process.env['REDIS_PORT'] || '6379';
-  process.env['REDIS_URL'] =
-    process.env['TEST_REDIS_URL'] || `redis://${redisHost}:${redisPort}`;
+  process.env['REDIS_URL'] = process.env['TEST_REDIS_URL'] || `redis://${redisHost}:${redisPort}`;
 
   // Configure JWT secrets
   process.env['JWT_SECRET'] = 'test-jwt-secret-key-e2e';
