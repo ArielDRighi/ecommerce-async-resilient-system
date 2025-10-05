@@ -193,11 +193,16 @@ describe('Database Integration (E2E)', () => {
 
   describe('Data Integrity', () => {
     it('should enforce foreign key constraints', async () => {
-      // Try to insert order with non-existent user
+      // Try to insert order with non-existent user (using valid UUID format)
       await expect(
         dataSource.query(
           `INSERT INTO orders (id, user_id, status, total_amount) VALUES ($1, $2, $3, $4)`,
-          ['00000000-0000-0000-0000-000000000005', 'non-existent-user-id', 'PENDING', 100],
+          [
+            '00000000-0000-0000-0000-000000000005',
+            '99999999-9999-9999-9999-999999999999',
+            'PENDING',
+            100,
+          ],
         ),
       ).rejects.toThrow();
     });

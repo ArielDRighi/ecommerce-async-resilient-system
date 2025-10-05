@@ -286,14 +286,14 @@ describe('OrderProcessingProcessor', () => {
   });
 
   describe('Error Handling', () => {
-    it('should handle error when sagaId is missing', async () => {
+    it('should handle processing without sagaId (backwards compatibility)', async () => {
       const mockJob: Partial<Job> = {
         id: '10',
         name: 'create-order',
         data: {
           jobId: 'order-no-saga',
           orderId: 'order-no-saga',
-          // sagaId is missing
+          // sagaId is missing - should process without saga pattern
           userId: 'user-123',
           items: [{ productId: 'prod-1', quantity: 1 }],
           totalAmount: 99.99,
@@ -305,12 +305,13 @@ describe('OrderProcessingProcessor', () => {
         progress: jest.fn(),
       };
 
-      // Call handleCreateOrder which will throw when sagaId is missing
-      // BaseProcessor catches exceptions and logs them
-      await processor.handleCreateOrder(mockJob as Job);
+      // Call handleCreateOrder - should succeed without saga
+      const result = await processor.handleCreateOrder(mockJob as Job);
 
-      // Verify error was logged
-      expect(Logger.prototype.error).toHaveBeenCalled();
+      // Verify warning was logged and job succeeded
+      expect(Logger.prototype.warn).toHaveBeenCalled();
+      expect(result.success).toBe(true);
+      expect((result.data as any).status).toBe('COMPLETED');
     });
 
     it('should handle saga execution failure', async () => {

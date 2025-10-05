@@ -107,6 +107,7 @@ describe('QueueService', () => {
       userId: 'USER-456',
       items: [{ productId: 'PROD-789', quantity: 2, unitPrice: 99.99 }],
       totalAmount: 199.98,
+      sagaId: 'SAGA-123',
     };
 
     it('should add an order job to the queue without options', async () => {
@@ -715,6 +716,7 @@ describe('QueueService', () => {
         userId: 'USER-1',
         items: [],
         totalAmount: 100,
+        sagaId: 'SAGA-1',
       };
       const jobData2: OrderProcessingJobData = {
         jobId: 'JOB-2',
@@ -723,6 +725,7 @@ describe('QueueService', () => {
         userId: 'USER-2',
         items: [],
         totalAmount: 200,
+        sagaId: 'SAGA-2',
       };
 
       orderQueue.add
