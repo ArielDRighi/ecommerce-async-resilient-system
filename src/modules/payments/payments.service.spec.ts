@@ -14,11 +14,7 @@ describe('PaymentsService', () => {
 
   // Helper to mock Math.random() for deterministic tests
   const mockSuccessfulPayment = () => {
-    randomSpy = mockSuccessfulPayment(); // Ensures success (< 0.8)
-  };
-
-  const mockFailedPayment = () => {
-    randomSpy = jest.spyOn(Math, 'random').mockReturnValue(0.9); // Ensures failure (> 0.8)
+    randomSpy = jest.spyOn(Math, 'random').mockReturnValue(0.5); // Ensures success (< 0.8)
   };
 
   beforeEach(async () => {
