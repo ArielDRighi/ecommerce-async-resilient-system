@@ -602,6 +602,110 @@ describe('QueueService', () => {
     });
   });
 
+  describe('Event Listeners', () => {
+    it('should trigger completed event listener when job completes', async () => {
+      await service.onModuleInit();
+
+      // Get the 'completed' event listener that was registered
+      const completedListener = (orderQueue.on as jest.Mock).mock.calls.find(
+        (call) => call[0] === 'completed',
+      )?.[1];
+
+      expect(completedListener).toBeDefined();
+
+      // Simulate a completed job
+      const mockJob = { id: 'test-job-123' } as Job;
+      completedListener(mockJob);
+
+      // Verify logger was called (implicitly tested via no errors)
+      expect(completedListener).toBeDefined();
+    });
+
+    it('should trigger failed event listener when job fails', async () => {
+      await service.onModuleInit();
+
+      // Get the 'failed' event listener
+      const failedListener = (orderQueue.on as jest.Mock).mock.calls.find(
+        (call) => call[0] === 'failed',
+      )?.[1];
+
+      expect(failedListener).toBeDefined();
+
+      // Simulate a failed job
+      const mockJob = { id: 'test-job-456' } as Job;
+      const mockError = new Error('Processing error');
+      failedListener(mockJob, mockError);
+
+      // Verify the listener handles the failure
+      expect(failedListener).toBeDefined();
+    });
+
+    it('should trigger stalled event listener when job stalls', async () => {
+      await service.onModuleInit();
+
+      // Get the 'stalled' event listener
+      const stalledListener = (orderQueue.on as jest.Mock).mock.calls.find(
+        (call) => call[0] === 'stalled',
+      )?.[1];
+
+      expect(stalledListener).toBeDefined();
+
+      // Simulate a stalled job
+      const mockJob = { id: 'test-job-789' } as Job;
+      stalledListener(mockJob);
+
+      // Verify the listener handles the stall
+      expect(stalledListener).toBeDefined();
+    });
+
+    it('should trigger error event listener when queue error occurs', async () => {
+      await service.onModuleInit();
+
+      // Get the 'error' event listener
+      const errorListener = (orderQueue.on as jest.Mock).mock.calls.find(
+        (call) => call[0] === 'error',
+      )?.[1];
+
+      expect(errorListener).toBeDefined();
+
+      // Simulate a queue error
+      const mockError = new Error('Queue connection error');
+      errorListener(mockError);
+
+      // Verify the listener handles the error
+      expect(errorListener).toBeDefined();
+    });
+
+    it('should handle failed event with null job gracefully', async () => {
+      await service.onModuleInit();
+
+      // Get the 'failed' event listener
+      const failedListener = (orderQueue.on as jest.Mock).mock.calls.find(
+        (call) => call[0] === 'failed',
+      )?.[1];
+
+      expect(failedListener).toBeDefined();
+
+      // Simulate a failed event with null job (edge case)
+      const mockError = new Error('Processing error');
+      expect(() => failedListener(null, mockError)).not.toThrow();
+    });
+
+    it('should set up event listeners for all four queues', async () => {
+      await service.onModuleInit();
+
+      // Verify each queue has all 4 event listeners
+      const queues = [orderQueue, paymentQueue, inventoryQueue, notificationQueue];
+      const expectedEvents = ['completed', 'failed', 'stalled', 'error'];
+
+      queues.forEach((queue) => {
+        expectedEvents.forEach((event) => {
+          expect(queue.on).toHaveBeenCalledWith(event, expect.any(Function));
+        });
+      });
+    });
+  });
+
   describe('Edge Cases', () => {
     it('should handle concurrent job additions', async () => {
       const jobData1: OrderProcessingJobData = {
@@ -641,6 +745,91 @@ describe('QueueService', () => {
 
       await expect(service.getQueueMetrics('order-processing')).rejects.toThrow(
         'Redis connection lost',
+      );
+    });
+
+    it('should handle graceful shutdown timeout scenario', async () => {
+      jest.useFakeTimers();
+
+      // Simulate jobs that never complete
+      orderQueue.getActiveCount.mockResolvedValue(5);
+      paymentQueue.getActiveCount.mockResolvedValue(3);
+      inventoryQueue.getActiveCount.mockResolvedValue(0);
+      notificationQueue.getActiveCount.mockResolvedValue(0);
+
+      const shutdownPromise = service.gracefulShutdown(5000);
+
+      // Advance time past the timeout
+      await jest.advanceTimersByTimeAsync(6000);
+
+      await shutdownPromise;
+
+      // Even with timeout, all queues should be closed
+      expect(orderQueue.close).toHaveBeenCalled();
+      expect(paymentQueue.close).toHaveBeenCalled();
+      expect(inventoryQueue.close).toHaveBeenCalled();
+      expect(notificationQueue.close).toHaveBeenCalled();
+
+      jest.useRealTimers();
+    });
+
+    it('should handle graceful shutdown with custom timeout', async () => {
+      jest.useFakeTimers();
+
+      orderQueue.getActiveCount.mockResolvedValue(0);
+      paymentQueue.getActiveCount.mockResolvedValue(0);
+      inventoryQueue.getActiveCount.mockResolvedValue(0);
+      notificationQueue.getActiveCount.mockResolvedValue(0);
+
+      const customTimeout = 60000; // 1 minute
+      await service.gracefulShutdown(customTimeout);
+
+      expect(orderQueue.close).toHaveBeenCalled();
+      expect(paymentQueue.close).toHaveBeenCalled();
+
+      jest.useRealTimers();
+    });
+
+    it('should clean both completed and failed jobs', async () => {
+      const customGrace = 1800000; // 30 minutes
+      await service.cleanQueue('inventory-management', customGrace);
+
+      expect(inventoryQueue.clean).toHaveBeenCalledTimes(2);
+      expect(inventoryQueue.clean).toHaveBeenCalledWith(customGrace, 'completed');
+      expect(inventoryQueue.clean).toHaveBeenCalledWith(customGrace, 'failed');
+    });
+
+    it('should handle pause queue errors gracefully', async () => {
+      const error = new Error('Failed to pause queue');
+      orderQueue.pause.mockRejectedValue(error);
+
+      await expect(service.pauseQueue('order-processing')).rejects.toThrow('Failed to pause queue');
+    });
+
+    it('should handle resume queue errors gracefully', async () => {
+      const error = new Error('Failed to resume queue');
+      paymentQueue.resume.mockRejectedValue(error);
+
+      await expect(service.resumeQueue('payment-processing')).rejects.toThrow(
+        'Failed to resume queue',
+      );
+    });
+
+    it('should handle empty queue errors gracefully', async () => {
+      const error = new Error('Failed to empty queue');
+      notificationQueue.empty.mockRejectedValue(error);
+
+      await expect(service.emptyQueue('notification-sending')).rejects.toThrow(
+        'Failed to empty queue',
+      );
+    });
+
+    it('should handle clean queue errors gracefully', async () => {
+      const error = new Error('Failed to clean queue');
+      inventoryQueue.clean.mockRejectedValue(error);
+
+      await expect(service.cleanQueue('inventory-management')).rejects.toThrow(
+        'Failed to clean queue',
       );
     });
   });

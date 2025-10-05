@@ -237,19 +237,19 @@ describe('Products E2E Tests', () => {
       });
     });
 
-    it('should filter products by price range', async () => {
+    it('should filter by price range', async () => {
       const response = await request(app.getHttpServer())
-        .get('/products?minPrice=60&maxPrice=80')
+        .get('/products?minPrice=100&maxPrice=500')
         .expect(HttpStatus.OK);
 
       const { data } = response.body;
       const productsResponse = data.data;
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect(productsResponse.data.length).toBeGreaterThan(0);
       productsResponse.data.forEach((product: any) => {
         const price = parseFloat(product.price);
-        expect(price).toBeGreaterThanOrEqual(60);
-        expect(price).toBeLessThanOrEqual(80);
+        expect(price).toBeGreaterThanOrEqual(100);
+        expect(price).toBeLessThanOrEqual(500);
       });
     });
 
