@@ -17,6 +17,8 @@ describe('Orders E2E Tests', () => {
   });
 
   afterAll(async () => {
+    // Wait for any pending saga operations to complete
+    await sleep(2000);
     await dbHelper.cleanDatabase();
     await app.close();
   });
