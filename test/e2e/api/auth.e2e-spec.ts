@@ -17,7 +17,7 @@ describe('Authentication (E2E)', () => {
 
   afterAll(async () => {
     await dbHelper.cleanDatabase();
-    await app.close();
+    await TestAppHelper.closeApp(app);
   });
 
   afterEach(async () => {

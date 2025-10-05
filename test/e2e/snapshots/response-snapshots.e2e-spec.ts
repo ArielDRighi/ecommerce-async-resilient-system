@@ -3,6 +3,7 @@ import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { AppModule } from '../../../src/app.module';
 import request from 'supertest';
 import { generateTestEmail, generateTestSKU } from '../../helpers/mock-data';
+import { TestAppHelper, DatabaseHelper } from '../../helpers';
 
 /**
  * Response Snapshots E2E Tests
@@ -11,6 +12,7 @@ import { generateTestEmail, generateTestSKU } from '../../helpers/mock-data';
  */
 describe('Response Snapshots (E2E)', () => {
   let app: INestApplication;
+  let dbHelper: DatabaseHelper;
   let userToken: string;
   let productId: string;
   let orderId: string;
@@ -21,6 +23,7 @@ describe('Response Snapshots (E2E)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
+    dbHelper = new DatabaseHelper(app);
     app.useGlobalPipes(
       new ValidationPipe({
         whitelist: true,
@@ -68,7 +71,8 @@ describe('Response Snapshots (E2E)', () => {
 
   afterAll(async () => {
     if (app) {
-      await app.close();
+      await dbHelper.cleanDatabase();
+      await TestAppHelper.closeApp(app);
     }
   });
 

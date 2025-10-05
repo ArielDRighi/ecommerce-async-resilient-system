@@ -28,7 +28,7 @@ describe('Bull Board Admin (E2E)', () => {
   });
 
   afterAll(async () => {
-    await app.close();
+    await TestAppHelper.closeApp(app);
   });
 
   describe('GET /admin/queues', () => {

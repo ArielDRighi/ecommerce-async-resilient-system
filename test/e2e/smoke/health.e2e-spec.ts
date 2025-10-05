@@ -14,7 +14,7 @@ describe('Health Check (E2E)', () => {
   });
 
   afterAll(async () => {
-    await app.close();
+    await TestAppHelper.closeApp(app);
   });
 
   describe('GET /health', () => {

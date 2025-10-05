@@ -3,6 +3,7 @@ import { INestApplication } from '@nestjs/common';
 import { AppModule } from '../../../src/app.module';
 import { DataSource } from 'typeorm';
 import { generateTestEmail, generateTestSKU } from '../../helpers/mock-data';
+import { TestAppHelper, DatabaseHelper } from '../../helpers';
 
 /**
  * Database Integration E2E Tests
@@ -11,6 +12,7 @@ import { generateTestEmail, generateTestSKU } from '../../helpers/mock-data';
  */
 describe('Database Integration (E2E)', () => {
   let app: INestApplication;
+  let dbHelper: DatabaseHelper;
   let dataSource: DataSource;
 
   beforeAll(async () => {
@@ -19,6 +21,7 @@ describe('Database Integration (E2E)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
+    dbHelper = new DatabaseHelper(app);
     await app.init();
 
     dataSource = moduleFixture.get<DataSource>(DataSource);
@@ -26,7 +29,8 @@ describe('Database Integration (E2E)', () => {
 
   afterAll(async () => {
     if (app) {
-      await app.close();
+      await dbHelper.cleanDatabase();
+      await TestAppHelper.closeApp(app);
     }
   });
 

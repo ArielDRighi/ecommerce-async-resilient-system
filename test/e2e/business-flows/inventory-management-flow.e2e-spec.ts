@@ -5,6 +5,7 @@ import { DataSource } from 'typeorm';
 import request from 'supertest';
 import { generateTestEmail, generateTestSKU } from '../../helpers/mock-data';
 import { Inventory } from '../../../src/modules/inventory/entities/inventory.entity';
+import { TestAppHelper, DatabaseHelper } from '../../helpers';
 
 /**
  * Inventory Management Flow E2E Tests
@@ -13,6 +14,7 @@ import { Inventory } from '../../../src/modules/inventory/entities/inventory.ent
  */
 describe('Inventory Management Flow (Business Flow)', () => {
   let app: INestApplication;
+  let dbHelper: DatabaseHelper;
   let adminToken: string;
   let productId: string;
   let dataSource: DataSource;
@@ -23,6 +25,7 @@ describe('Inventory Management Flow (Business Flow)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
+    dbHelper = new DatabaseHelper(app);
     app.useGlobalPipes(
       new ValidationPipe({
         whitelist: true,
@@ -47,7 +50,8 @@ describe('Inventory Management Flow (Business Flow)', () => {
 
   afterAll(async () => {
     if (app) {
-      await app.close();
+      await dbHelper.cleanDatabase();
+      await TestAppHelper.closeApp(app);
     }
   });
 

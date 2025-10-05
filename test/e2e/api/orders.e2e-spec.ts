@@ -3,12 +3,10 @@ import request from 'supertest';
 import { TestAppHelper, DatabaseHelper } from '../../helpers';
 import { generateTestSKU } from '../../helpers/mock-data';
 import { sleep } from '../../helpers/test-helpers';
-import { QueueService } from '../../../src/queues/queue.service';
 
 describe('Orders E2E Tests', () => {
   let app: INestApplication;
   let dbHelper: DatabaseHelper;
-  let queueService: QueueService;
   let accessToken: string;
   let productId: string;
   let createdOrderId: string;
@@ -16,14 +14,11 @@ describe('Orders E2E Tests', () => {
   beforeAll(async () => {
     app = await TestAppHelper.createApp();
     dbHelper = new DatabaseHelper(app);
-    queueService = app.get(QueueService);
   });
 
   afterAll(async () => {
-    // Wait for any active queue jobs (sagas, processors) to complete
-    await queueService.waitForActiveJobs(10000); // 10 second timeout
     await dbHelper.cleanDatabase();
-    await app.close();
+    await TestAppHelper.closeApp(app);
   });
 
   beforeEach(async () => {

@@ -21,7 +21,7 @@ describe('Users E2E Tests', () => {
 
   afterAll(async () => {
     await dbHelper.cleanDatabase();
-    await app.close();
+    await TestAppHelper.closeApp(app);
   });
 
   beforeEach(async () => {

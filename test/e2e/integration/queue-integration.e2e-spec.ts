@@ -4,6 +4,7 @@ import { AppModule } from '../../../src/app.module';
 import { Queue } from 'bull';
 import { getQueueToken } from '@nestjs/bull';
 import { sleep } from '../../helpers/test-helpers';
+import { TestAppHelper, DatabaseHelper } from '../../helpers';
 
 /**
  * Queue Integration E2E Tests
@@ -12,6 +13,7 @@ import { sleep } from '../../helpers/test-helpers';
  */
 describe('Queue Integration (E2E)', () => {
   let app: INestApplication;
+  let dbHelper: DatabaseHelper;
   let orderQueue: Queue;
   let notificationQueue: Queue;
 
@@ -21,6 +23,7 @@ describe('Queue Integration (E2E)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
+    dbHelper = new DatabaseHelper(app);
     await app.init();
 
     orderQueue = app.get(getQueueToken('order-processing'));
@@ -39,7 +42,8 @@ describe('Queue Integration (E2E)', () => {
     }
 
     if (app) {
-      await app.close();
+      await dbHelper.cleanDatabase();
+      await TestAppHelper.closeApp(app);
     }
   });
 

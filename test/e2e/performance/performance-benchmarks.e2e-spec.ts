@@ -99,7 +99,7 @@ describe('Performance Benchmarks (e2e)', () => {
 
   afterAll(async () => {
     await dbHelper.cleanDatabase();
-    await app.close();
+    await TestAppHelper.closeApp(app);
   });
 
   describe('Health Check Endpoints', () => {
