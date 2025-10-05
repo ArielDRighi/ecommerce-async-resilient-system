@@ -78,8 +78,8 @@ describe('ProductsService', () => {
     removeImage: jest.fn(),
   };
 
-  beforeEach(async () => {
-    // Re-setup mock chain after clearAllMocks()
+  // Helper function to setup mock query builder chain
+  const setupQueryBuilderMocks = () => {
     mockQueryBuilder.where.mockReturnValue(mockQueryBuilder);
     mockQueryBuilder.andWhere.mockReturnValue(mockQueryBuilder);
     mockQueryBuilder.orderBy.mockReturnValue(mockQueryBuilder);
@@ -89,6 +89,11 @@ describe('ProductsService', () => {
     mockQueryBuilder.take.mockReturnValue(mockQueryBuilder);
     mockQueryBuilder.limit.mockReturnValue(mockQueryBuilder);
     mockRepository.createQueryBuilder.mockReturnValue(mockQueryBuilder);
+  };
+
+  beforeEach(async () => {
+    // Re-setup mock chain after clearAllMocks()
+    setupQueryBuilderMocks();
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [

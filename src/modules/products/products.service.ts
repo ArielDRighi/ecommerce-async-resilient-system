@@ -216,6 +216,7 @@ export class ProductsService {
       }
 
       // Validate price relationships if prices are being updated
+      // Using strict undefined checks (not falsy) because 0 is a valid price
       if (
         updateProductDto.price !== undefined ||
         updateProductDto.costPrice !== undefined ||

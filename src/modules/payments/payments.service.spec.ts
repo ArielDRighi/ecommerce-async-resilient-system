@@ -10,6 +10,16 @@ import {
 
 describe('PaymentsService', () => {
   let service: PaymentsService;
+  let randomSpy: jest.SpyInstance;
+
+  // Helper to mock Math.random() for deterministic tests
+  const mockSuccessfulPayment = () => {
+    randomSpy = mockSuccessfulPayment(); // Ensures success (< 0.8)
+  };
+
+  const mockFailedPayment = () => {
+    randomSpy = jest.spyOn(Math, 'random').mockReturnValue(0.9); // Ensures failure (> 0.8)
+  };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -21,6 +31,10 @@ describe('PaymentsService', () => {
 
   afterEach(() => {
     service.clearAll();
+    // Restore Math.random() to prevent test pollution
+    if (randomSpy) {
+      randomSpy.mockRestore();
+    }
   });
 
   it('should be defined', () => {
@@ -304,7 +318,7 @@ describe('PaymentsService', () => {
 
     it('should reject refund amount exceeding payment amount', async () => {
       // Mock Math.random to force successful payment (< 0.80)
-      jest.spyOn(Math, 'random').mockReturnValue(0.5);
+      mockSuccessfulPayment();
 
       const payment = await service.processPayment({
         orderId: 'order-refund-exceed',
@@ -337,7 +351,7 @@ describe('PaymentsService', () => {
   describe('clearAll', () => {
     it('should clear all payments and refunds', async () => {
       // Mock Math.random to force successful payments (< 0.80)
-      jest.spyOn(Math, 'random').mockReturnValue(0.5);
+      mockSuccessfulPayment();
 
       // Create some payments
       await service.processPayment({
@@ -371,7 +385,7 @@ describe('PaymentsService', () => {
   describe('refundPayment - additional edge cases', () => {
     it('should process full refund and update payment status to REFUNDED', async () => {
       // Mock Math.random to force successful payment (< 0.80)
-      jest.spyOn(Math, 'random').mockReturnValue(0.5);
+      mockSuccessfulPayment();
 
       // Arrange - create a successful payment
       const payment = await service.processPayment({
@@ -398,7 +412,7 @@ describe('PaymentsService', () => {
 
     it('should process partial refund and update payment status to PARTIALLY_REFUNDED', async () => {
       // Mock Math.random to force successful payment (< 0.80)
-      jest.spyOn(Math, 'random').mockReturnValue(0.5);
+      mockSuccessfulPayment();
 
       // Arrange - create a successful payment
       const payment = await service.processPayment({
@@ -454,7 +468,7 @@ describe('PaymentsService', () => {
 
     it('should include reason in refund response', async () => {
       // Mock Math.random to force successful payment (< 0.80)
-      jest.spyOn(Math, 'random').mockReturnValue(0.5);
+      mockSuccessfulPayment();
 
       // Arrange
       const payment = await service.processPayment({
@@ -481,7 +495,7 @@ describe('PaymentsService', () => {
   describe('getPaymentStatus - additional cases', () => {
     it('should return payment with all required fields', async () => {
       // Mock Math.random to force successful payment (< 0.80)
-      jest.spyOn(Math, 'random').mockReturnValue(0.5);
+      mockSuccessfulPayment();
 
       // Arrange - create payment
       const payment = await service.processPayment({
@@ -511,7 +525,7 @@ describe('PaymentsService', () => {
   describe('processPayment - idempotency edge cases', () => {
     it('should return same payment for multiple requests with same idempotency key', async () => {
       // Mock Math.random to force successful payment (< 0.80)
-      jest.spyOn(Math, 'random').mockReturnValue(0.5);
+      mockSuccessfulPayment();
 
       // Arrange
       const dto: ProcessPaymentDto = {
@@ -539,7 +553,7 @@ describe('PaymentsService', () => {
 
     it('should create different payments for different idempotency keys', async () => {
       // Mock Math.random to force successful payments (< 0.80)
-      jest.spyOn(Math, 'random').mockReturnValue(0.5);
+      mockSuccessfulPayment();
 
       // Arrange & Act
       const payment1 = await service.processPayment({
@@ -567,7 +581,7 @@ describe('PaymentsService', () => {
   describe('statistics - detailed tracking', () => {
     it('should correctly count successful and failed payments', async () => {
       // Mock Math.random to force successful payments (< 0.80)
-      jest.spyOn(Math, 'random').mockReturnValue(0.5);
+      mockSuccessfulPayment();
 
       // Arrange - clear first
       service.clearAll();
