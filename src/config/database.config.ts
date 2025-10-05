@@ -7,7 +7,7 @@ export const databaseConfig = registerAs(
     type: 'postgres',
     host: process.env['DATABASE_HOST'] || 'localhost',
     port: parseInt(process.env['DATABASE_PORT'] || '5433', 10),
-    username: process.env['DATABASE_USERNAME'] || 'postgres',
+    username: process.env['DATABASE_USERNAME'] || process.env['DATABASE_USER'] || 'postgres',
     password: process.env['DATABASE_PASSWORD'] || 'password',
     database: process.env['DATABASE_NAME'] || 'ecommerce_async_dev',
 
@@ -79,11 +79,11 @@ export const databaseTestConfig = registerAs(
   'database-test',
   (): TypeOrmModuleOptions => ({
     type: 'postgres',
-    host: process.env['TEST_DATABASE_HOST'] || 'localhost',
-    port: parseInt(process.env['TEST_DATABASE_PORT'] || '5432', 10),
-    username: process.env['TEST_DATABASE_USERNAME'] || 'postgres',
-    password: process.env['TEST_DATABASE_PASSWORD'] || 'password',
-    database: process.env['TEST_DATABASE_NAME'] || 'ecommerce_async_test',
+    host: process.env['TEST_DATABASE_HOST'] || process.env['DATABASE_HOST'] || 'localhost',
+    port: parseInt(process.env['TEST_DATABASE_PORT'] || process.env['DATABASE_PORT'] || '5432', 10),
+    username: process.env['TEST_DATABASE_USERNAME'] || process.env['DATABASE_USERNAME'] || process.env['DATABASE_USER'] || 'postgres',
+    password: process.env['TEST_DATABASE_PASSWORD'] || process.env['DATABASE_PASSWORD'] || 'password',
+    database: process.env['TEST_DATABASE_NAME'] || process.env['DATABASE_NAME'] || 'ecommerce_async_test',
 
     entities: [__dirname + '/../modules/**/*.entity{.ts,.js}'],
     synchronize: true, // Always synchronize in test environment
