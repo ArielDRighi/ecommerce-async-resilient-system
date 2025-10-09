@@ -73,6 +73,18 @@ describe('API Response Time Benchmarks - Performance Testing (E2E)', () => {
     await seedPerformanceData();
   });
 
+  beforeEach(async () => {
+    // Limpiar SOLO las tablas que los tests modifican entre cada test
+    // NO limpiar users, products, categories (son fixtures estáticas para performance)
+    await databaseHelper.cleanTables([
+      'order_items',
+      'orders',
+      'outbox_events',
+      'saga_states',
+      'inventory_reservations',
+    ]);
+  });
+
   afterAll(async () => {
     // Cleanup
     await databaseHelper.cleanDatabase();
@@ -406,7 +418,8 @@ describe('API Response Time Benchmarks - Performance Testing (E2E)', () => {
         request(app.getHttpServer()).get('/products').query({ page: 1, limit: 10 }),
       );
 
-      const postRequests = Array.from({ length: 5 }, () =>
+      // Crear 5 órdenes con idempotencyKey único para cada una
+      const postRequests = Array.from({ length: 5 }, (_, index) =>
         request(app.getHttpServer())
           .post('/orders')
           .set('Authorization', `Bearer ${freshToken}`)
@@ -417,6 +430,7 @@ describe('API Response Time Benchmarks - Performance Testing (E2E)', () => {
                 quantity: 1,
               },
             ],
+            idempotencyKey: `perf-test-concurrent-${Date.now()}-${index}`, // Key único
           }),
       );
 
