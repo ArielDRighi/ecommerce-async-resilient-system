@@ -40,14 +40,28 @@ describe('API Response Time Benchmarks - Performance Testing (E2E)', () => {
   let testCategory: Category;
   let testProduct: Product;
 
-  // SLAs definidos (en milisegundos) - valores realistas para pruebas E2E con dependencias reales
+  /**
+   * SLAs definidos (en milisegundos) para tests E2E con dependencias reales.
+   *
+   * NOTA: Estos valores son más permisivos que SLAs de producción porque:
+   * - Health checks incluyen conexión real a PostgreSQL (overhead inicial)
+   * - Auth incluye hashing bcrypt con factor de coste 10 (seguro pero lento)
+   * - Entorno de testing puede tener overhead adicional vs producción
+   *
+   * SLAs de producción recomendados (más estrictos):
+   * - HEALTH_CHECK: <100ms (con cache y conexiones warm)
+   * - AUTH_ENDPOINT: <300ms (con optimizaciones)
+   */
   const SLA = {
-    HEALTH_CHECK: 1000, // Health checks con DB real pueden ser más lentos en primera ejecución
-    GET_ENDPOINT: 200, // GETs de lectura simple
-    AUTH_ENDPOINT: 400, // Auth con hash bcrypt es costoso computacionalmente
-    POST_ENDPOINT: 500, // POSTs transaccionales
-    CONCURRENT_TOTAL: 2000, // 10 requests en 2 segundos
+    HEALTH_CHECK: 1000, // Health check con DB real puede ser lento en primera ejecución
+    GET_ENDPOINT: 200, // GETs de lectura simple (realista)
+    AUTH_ENDPOINT: 400, // Auth con bcrypt es computacionalmente costoso
+    POST_ENDPOINT: 500, // POSTs transaccionales (realista)
+    CONCURRENT_TOTAL: 2000, // 10 requests en 2 segundos (realista)
   };
+
+  // Multiplicador para tests de requests mixtos (GETs + POSTs concurrentes)
+  const MIXED_REQUESTS_SLA_MULTIPLIER = 1.5;
 
   beforeAll(async () => {
     // Crear app con dependencias REALES
@@ -214,10 +228,10 @@ describe('API Response Time Benchmarks - Performance Testing (E2E)', () => {
       const profileData = extractData(response);
       expect(profileData).toHaveProperty('id');
       expect(profileData).toHaveProperty('email');
-      // Este test incluye un login previo, por lo que usamos SLA más flexible
-      expect(responseTime).toBeLessThan(SLA.AUTH_ENDPOINT);
+      // Este test solo mide el GET /auth/profile, así que usamos SLA estricto de GET
+      expect(responseTime).toBeLessThan(SLA.GET_ENDPOINT);
 
-      console.log(`✓ GET /auth/profile: ${responseTime}ms (SLA: ${SLA.AUTH_ENDPOINT}ms)`);
+      console.log(`✓ GET /auth/profile: ${responseTime}ms (SLA: ${SLA.GET_ENDPOINT}ms)`);
     });
   });
 
@@ -413,7 +427,7 @@ describe('API Response Time Benchmarks - Performance Testing (E2E)', () => {
       expect(responses).toHaveLength(10);
 
       // SLA más flexible para mix de requests (GETs + POSTs)
-      expect(totalTime).toBeLessThan(SLA.CONCURRENT_TOTAL * 1.5); // 3 segundos
+      expect(totalTime).toBeLessThan(SLA.CONCURRENT_TOTAL * MIXED_REQUESTS_SLA_MULTIPLIER); // 3 segundos
 
       console.log(`✓ 10 mixed concurrent requests: ${totalTime}ms`);
       console.log(`  → Avg per request: ${Math.round(totalTime / 10)}ms`);
