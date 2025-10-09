@@ -104,7 +104,15 @@ export class DatabaseHelper {
       await queryRunner.query('SET session_replication_role = replica;');
 
       for (const table of tables) {
-        await queryRunner.query(`DELETE FROM "${table}" WHERE 1=1;`);
+        // Verificar si la tabla existe antes de intentar limpiarla
+        const tableExists = await queryRunner.query(
+          `SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = $1);`,
+          [table],
+        );
+
+        if (tableExists[0].exists) {
+          await queryRunner.query(`DELETE FROM "${table}" WHERE 1=1;`);
+        }
       }
 
       await queryRunner.query('SET session_replication_role = DEFAULT;');
