@@ -39,22 +39,27 @@ module.exports = {
   coverageDirectory: '../coverage',
   coverageReporters: ['text', 'text-summary', 'lcov', 'html', 'json'],
 
-  // Coverage thresholds - Quality Gates
+  // Coverage thresholds - Quality Gates (Professional Standard)
   coverageThreshold: {
     global: {
-      branches: 20,
-      functions: 20,
-      lines: 20,
-      statements: 20,
+      branches: 70,
+      functions: 70,
+      lines: 70,
+      statements: 70,
     },
     // Critical modules require higher coverage
-    // Commented out for now - will be enabled as we improve coverage
-    // '**/src/modules/auth/**/*.ts': {
-    //   branches: 95,
-    //   functions: 95,
-    //   lines: 95,
-    //   statements: 95,
-    // },
+    '**/src/modules/payments/**/*.ts': {
+      branches: 80,
+      functions: 80,
+      lines: 80,
+      statements: 80,
+    },
+    '**/src/modules/orders/**/*.ts': {
+      branches: 80,
+      functions: 80,
+      lines: 80,
+      statements: 80,
+    },
   },
 
   // Setup files

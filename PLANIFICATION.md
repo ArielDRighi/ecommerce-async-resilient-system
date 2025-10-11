@@ -1875,8 +1875,28 @@ Una tarea se considera completada cuando:
 
 ```
 
-```
+📋 Plan de Acción para esta Rama
+Propongo trabajar en este orden:
 
-response.body.data
-response.body.data.data.user.id
-response.body.data.data = { id, email, ... } // Los datos reales del usuario
+1️⃣ Actualizar/Crear Documentos Técnicos
+Revisar y actualizar los docs existentes
+Crear documentos faltantes (API, Architecture, etc.)
+Mantener consistencia con el proyecto 1
+2️⃣ Actualizar README.md
+Overview del proyecto
+Stack tecnológico
+Instrucciones de instalación y configuración
+Comandos disponibles
+Estructura del proyecto
+Enlaces a documentación detallada
+3️⃣ Configurar Swagger/OpenAPI
+Configurar decoradores en controllers
+Documentar schemas y DTOs
+Ejemplos de requests/responses
+Tags y agrupaciones lógicas
+4️⃣ Probar Todos los Endpoints
+Crear colección de tests en Swagger
+Validar respuestas
+Documentar casos de uso
+
+```
